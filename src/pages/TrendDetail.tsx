@@ -165,6 +165,34 @@ const Keywords = styled.p`
   color: ${t.color.dim};
 `
 
+// 이 트렌드의 영상·밈·기사를 각 서비스에서 바로 검색한다. API 키도 쿼터도 들지 않는다.
+const SEARCH_SITES = [
+  { label: '유튜브', url: (q: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` },
+  { label: '네이버', url: (q: string) => `https://search.naver.com/search.naver?query=${encodeURIComponent(q)}` },
+  { label: '구글', url: (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
+]
+
+const OutLinks = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: ${t.radius.pill};
+    background: ${t.color.surface};
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  svg {
+    color: ${t.color.dim};
+  }
+`
+
 export default function TrendDetail() {
   const { id } = useParams<{ id: string }>()
   const trend = useTrend(id)
@@ -280,6 +308,18 @@ export default function TrendDetail() {
               <span key={k}>{k}</span>
             ))}
           </Keywords>
+        </Section>
+
+        <Section data-stagger>
+          <SectionTitle style={{ marginBottom: 12 }}>더 찾아보기</SectionTitle>
+          <OutLinks>
+            {SEARCH_SITES.map((site) => (
+              <a key={site.label} href={site.url(trend.title)} target="_blank" rel="noopener noreferrer">
+                {site.label}에서 보기
+                <Icon name="external" size={16} />
+              </a>
+            ))}
+          </OutLinks>
         </Section>
 
         {related.length > 0 && (

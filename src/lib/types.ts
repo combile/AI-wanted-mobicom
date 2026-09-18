@@ -55,6 +55,15 @@ export interface ScorePoint {
   score: number
 }
 
+/** GET /api/videos 의 한 항목. 유튜브 한국 인기 영상. */
+export interface VideoItem {
+  id: string
+  title: string
+  channelTitle: string
+  publishedAt: string
+  viewCount: number
+}
+
 export interface TrendCard {
   id: string
   title: string

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import Layout from '../components/Layout'
@@ -6,6 +6,7 @@ import RankingRow from '../components/RankingRow'
 import TrendRowSection from '../components/TrendRowSection'
 import TrendFeature from '../components/TrendFeature'
 import TrendTile from '../components/TrendTile'
+import VideoTile from '../components/VideoTile'
 import Icon from '../components/Icon'
 import { formatChange } from '../lib/format'
 import { TIME_RANGES, type TimeRangeKey } from '../lib/meta'
@@ -14,8 +15,20 @@ import { byCategory, byScoreDesc, byStatuses, rankFor } from '../lib/selectors'
 import type { CategoryKey } from '../lib/types'
 import { useInterests } from '../store/useInterests'
 import { useTrends } from '../store/useTrends'
+import { useVideos } from '../store/useVideos'
 import { theme as t } from '../styles/theme'
-import { Banner, BannerArrow, Chip, MoreLink, Page, Section, SectionHead, SectionTitle, TileGrid } from '../styles/ui'
+import {
+  Banner,
+  BannerArrow,
+  Chip,
+  MoreLink,
+  Page,
+  ScrollRow,
+  Section,
+  SectionHead,
+  SectionTitle,
+  TileGrid,
+} from '../styles/ui'
 
 const LIFE: { key: CategoryKey; label: string }[] = [
   { key: 'fashion', label: '입는 것' },
@@ -90,6 +103,19 @@ const Cloud = styled.p`
   }
 `
 
+const VideoScroll = styled(ScrollRow)`
+  gap: 12px;
+
+  > * {
+    flex: 0 0 208px;
+  }
+`
+
+const VideoNote = styled.span`
+  font-size: 13px;
+  color: ${t.color.dim};
+`
+
 const Source = styled.p`
   margin-top: 36px;
   font-size: 12px;
@@ -107,6 +133,11 @@ export default function Home() {
   const [life, setLife] = useState<CategoryKey>('fashion')
   const trends = useTrends((s) => s.trends)
   const status = useTrends((s) => s.status)
+  const videos = useVideos((s) => s.videos)
+
+  useEffect(() => {
+    void useVideos.getState().load()
+  }, [])
   const { interests, onboarded } = useInterests()
 
   const page = useRef<HTMLDivElement>(null)
@@ -220,6 +251,20 @@ export default function Home() {
         )}
 
         <TrendRowSection title="지금 폭발 중" trends={byStatuses(trends, ['viral', 'rising']).slice(0, 8)} />
+
+        {videos && videos.length > 0 && (
+          <Section data-stagger>
+            <SectionHead>
+              <SectionTitle>유튜브 인기 영상</SectionTitle>
+              <VideoNote>한국 기준</VideoNote>
+            </SectionHead>
+            <VideoScroll>
+              {videos.slice(0, 12).map((video) => (
+                <VideoTile key={video.id} video={video} />
+              ))}
+            </VideoScroll>
+          </Section>
+        )}
 
         <Section data-stagger>
           <SectionHead>

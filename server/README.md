@@ -79,7 +79,13 @@ curl -X POST -H "$AUTH" http://localhost:8787/api/admin/review/{id}/reject
 
 승인된 카드만 `GET /api/trends`로 노출됩니다 — 프론트엔드가 붙일 엔드포인트입니다.
 
-## 5. 알려진 한계 (v1)
+## 5. 유튜브 인기 영상
+
+`GET /api/videos` — 한국 인기 영상(`videos.list` mostPopular, 호출당 1 unit)을 30분 캐시해 돌려줍니다(하루 48 unit 수준).
+`YOUTUBE_API_KEY`가 없으면 503, 유튜브 호출이 실패하면 캐시된 목록을 계속 주고 캐시가 없을 때만 502입니다.
+네이버·구글은 인기 영상/밈 목록을 주는 공개 API가 없어(DataLab은 아는 키워드의 추이만, Google Trends API는 알파 승인제) 프론트에서 검색 링크로 연결합니다.
+
+## 6. 알려진 한계 (v1)
 
 - **Naver Shopping Insight(패션/푸드 관심도)는 아직 비활성**입니다. 카테고리 코드 매핑이 필요해서
   `src/pipeline/validate.ts`의 `shoppingGrowthPct`가 항상 `null`로 나갑니다. 카테고리 코드를

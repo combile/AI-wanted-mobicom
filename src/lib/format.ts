@@ -3,6 +3,21 @@ export function formatChange(pct: number): string {
   return `${sign}${pct}%`
 }
 
+/** 조회수를 한국식 단위로: 12345 → '1.2만회'. 100 미만이면 소수 한 자리(내림), 그 이상은 정수. */
+export function formatViews(views: number): string {
+  const units: [number, string][] = [
+    [1e8, '억'],
+    [1e4, '만'],
+    [1e3, '천'],
+  ]
+  for (const [size, label] of units) {
+    if (views < size) continue
+    const value = views / size
+    return `${value < 100 ? Math.floor(value * 10) / 10 : Math.floor(value)}${label}회`
+  }
+  return `${views}회`
+}
+
 export function formatRelativeDate(iso: string): string {
   const date = new Date(iso)
   const now = new Date()

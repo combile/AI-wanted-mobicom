@@ -26,7 +26,17 @@ npm run dev
 | UI 아이콘 | `@mui/icons-material` (Rounded) | `src/lib/icons.ts`에 등록 후 `<Icon name="search" size={20} />` |
 | 3D 아이콘 | Microsoft Fluent Emoji 3D (MIT) | **트렌드 썸네일 전용**(`<TrendThumb trend={t} />`). 상태·카테고리·UI에는 쓰지 않고 Material 아이콘만 쓴다. 추가: `scripts/fetch-icons3d.mjs`에 한 줄 → `npm run icons3d` → `src/lib/icons3d.ts`의 `Icon3DName`·`TREND_ICON`에 추가 |
 
+## 테스트
+
+```bash
+npm test                 # 프론트: vitest (검색·랭킹·표기 함수)
+cd server && npm test    # 서버: node:test (관리자 토큰, 캐시)
+```
+
 ## 구현된 기능
+
+- **유튜브 인기 영상 (한국)** — 서버의 `GET /api/videos`(YouTube `mostPopular`, regionCode=KR, 30분 캐시)를 홈에 노출. `YOUTUBE_API_KEY`가 없거나 서버가 꺼져 있으면 섹션이 숨겨짐
+- **더 찾아보기** — 상세 화면에서 그 트렌드를 유튜브·네이버·구글에서 바로 검색(키·쿼터 불필요)
 
 - **TREND NOW (홈)** — 실시간/오늘/이번 주/이번 달 랭킹, 지금 폭발 중 / Rising / 밈 / 카테고리별 섹션
 - **Trend Card / Trend Score** — 0~100점 점수, 7단계 상태(Emerging → Over), 변화율

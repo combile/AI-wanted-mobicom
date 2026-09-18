@@ -3,6 +3,7 @@ import express from 'express'
 import { config, isAnthropicConfigured, isNaverConfigured, isYoutubeConfigured } from './config/index.js'
 import { trendsRouter } from './routes/trends.js'
 import { adminRouter } from './routes/admin.js'
+import { videosRouter } from './routes/videos.js'
 import { startScheduler } from './scheduler.js'
 
 const app = express()
@@ -24,6 +25,7 @@ app.get('/health', (_req, res) => {
 })
 
 app.use('/api/trends', trendsRouter)
+app.use('/api/videos', videosRouter)
 app.use('/api/admin', adminRouter)
 
 app.listen(config.port, () => {

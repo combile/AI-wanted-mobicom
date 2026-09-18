@@ -33,6 +33,7 @@ import ArrowBackIosNewRounded from '@mui/icons-material/ArrowBackIosNewRounded'
 import ArrowForwardRounded from '@mui/icons-material/ArrowForwardRounded'
 import CheckRounded from '@mui/icons-material/CheckRounded'
 import IosShareRounded from '@mui/icons-material/IosShareRounded'
+import OpenInNewRounded from '@mui/icons-material/OpenInNewRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import NorthEastRounded from '@mui/icons-material/NorthEastRounded'
 import SouthEastRounded from '@mui/icons-material/SouthEastRounded'
@@ -75,6 +76,7 @@ export const ICONS = {
   arrowRight: ArrowForwardRounded,
   check: CheckRounded,
   share: IosShareRounded,
+  external: OpenInNewRounded,
   chevronRight: ChevronRightRounded,
   arrowUp: NorthEastRounded,
   arrowDown: SouthEastRounded,

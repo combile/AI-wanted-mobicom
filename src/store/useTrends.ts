@@ -19,18 +19,25 @@ interface TrendsState {
 
 // ponytail: 프로토타입이라 실패 시 샘플 데이터로 대신한다.
 // 실서비스 전환 시 샘플 폴백을 걷어내고 offline/empty를 전용 화면으로 바꿀 것.
+let inflight: Promise<void> | undefined
+
 export const useTrends = create<TrendsState>((set) => ({
   trends: [],
   status: 'loading',
-  load: async () => {
-    set({ status: 'loading' })
-    try {
-      const live = await fetchTrends()
-      set(live.length > 0 ? { trends: live, status: 'live' } : { trends: TRENDS, status: 'empty' })
-    } catch {
-      set({ trends: TRENDS, status: 'offline' })
-    }
-  },
+  // 진행 중인 요청이 있으면 그것을 공유한다. 요청이 겹치면(StrictMode의 이중 effect, 연타한 "다시 시도")
+  // 늦게 끝난 실패가 먼저 끝난 성공을 덮어쓸 수 있기 때문.
+  load: () =>
+    (inflight ??= (async () => {
+      set({ status: 'loading' })
+      try {
+        const live = await fetchTrends()
+        set(live.length > 0 ? { trends: live, status: 'live' } : { trends: TRENDS, status: 'empty' })
+      } catch {
+        set({ trends: TRENDS, status: 'offline' })
+      }
+    })().finally(() => {
+      inflight = undefined
+    })),
 }))
 
 export function useTrend(id: string | undefined): TrendCard | undefined {
