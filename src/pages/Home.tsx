@@ -94,13 +94,19 @@ const Source = styled.p`
   margin-top: 36px;
   font-size: 12px;
   color: ${t.color.dim};
+
+  button {
+    color: ${t.color.text};
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 `
 
 export default function Home() {
   const [range, setRange] = useState<TimeRangeKey>('today')
   const [life, setLife] = useState<CategoryKey>('fashion')
   const trends = useTrends((s) => s.trends)
-  const source = useTrends((s) => s.source)
+  const status = useTrends((s) => s.status)
   const { interests, onboarded } = useInterests()
 
   const page = useRef<HTMLDivElement>(null)
@@ -264,7 +270,14 @@ export default function Home() {
 
         <TrendRowSection title="아직 많이 모르는 Rising Trend" trends={byStatuses(trends, ['emerging']).slice(0, 8)} />
 
-        <Source>{source === 'live' ? '실시간 데이터로 보고 있어요.' : '서버에 연결되지 않아 샘플 데이터로 보고 있어요.'}</Source>
+        {status !== 'live' && (
+          <Source role="status">
+            {status === 'offline'
+              ? '서버에 연결하지 못해 샘플 데이터를 보여주고 있어요.'
+              : '아직 승인된 트렌드가 없어 샘플 데이터를 보여주고 있어요.'}{' '}
+            <button onClick={() => void useTrends.getState().load()}>다시 시도</button>
+          </Source>
+        )}
       </Page>
     </Layout>
   )
