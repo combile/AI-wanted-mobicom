@@ -1,11 +1,48 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
+import styled from '@emotion/styled'
 import Layout from '../components/Layout'
 import Icon from '../components/Icon'
 import { CATEGORIES } from '../lib/meta'
-import { useInterests } from '../store/useInterests'
+import { pop } from '../lib/motion'
 import type { CategoryKey } from '../lib/types'
+import { useInterests } from '../store/useInterests'
+import { theme as t } from '../styles/theme'
+import { Lead, Page, PrimaryButton } from '../styles/ui'
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 28px;
+`
+
+// 고르는 컨트롤이라 눌리는 면은 남기되, 선택 표시는 아이콘 색과 가는 테두리로만 한다.
+const Choice = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 16px;
+  border-radius: ${t.radius.md};
+  background: ${t.color.surface};
+  box-shadow: inset 0 0 0 1px transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: ${t.color.dim};
+  transition:
+    box-shadow 0.15s,
+    color 0.15s;
+
+  &[aria-pressed='true'] {
+    box-shadow: inset 0 0 0 1px ${t.color.accent};
+    color: ${t.color.text};
+  }
+
+  &[aria-pressed='true'] svg {
+    color: ${t.color.accent};
+  }
+`
 
 export default function Onboarding() {
   const { interests, setInterests } = useInterests()
@@ -25,39 +62,31 @@ export default function Onboarding() {
   }
 
   return (
-    <Layout title="관심 분야 선택">
-      <div className="px-4 pt-4">
-        <p className="text-sm text-[var(--color-text-dim)] mb-4">
-          관심 있는 분야를 골라주세요. FOR YOU 피드에 반영돼요. (메인 TREND NOW는 개인화되지 않아요)
-        </p>
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          {CATEGORIES.map((c) => {
-            const active = selected.has(c.key)
-            return (
-              <button
-                key={c.key}
-                onClick={() => toggle(c.key)}
-                className={clsx(
-                  'flex flex-col items-center gap-1 rounded-2xl border py-4 text-xs font-medium',
-                  active
-                    ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                    : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-                )}
-              >
-                <Icon name={c.icon} size={22} />
-                {c.label}
-              </button>
-            )
-          })}
-        </div>
-        <button
-          onClick={save}
-          disabled={selected.size === 0}
-          className="w-full rounded-full bg-[var(--color-accent)] text-black font-semibold py-3 text-sm disabled:opacity-40"
-        >
-          {selected.size}개 선택 완료
-        </button>
-      </div>
+    <Layout title="관심 분야 선택" back actions={null}>
+      <Page>
+        <Lead data-stagger>
+          관심 있는 분야를 고르면 홈의 FOR YOU에 반영돼요. 메인 랭킹은 모두에게 똑같이 보여요.
+        </Lead>
+        <Grid>
+          {CATEGORIES.map((c) => (
+            <Choice
+              key={c.key}
+              aria-pressed={selected.has(c.key)}
+              data-stagger
+              onClick={(e) => {
+                toggle(c.key)
+                pop(e.currentTarget.firstElementChild)
+              }}
+            >
+              <Icon name={c.icon} size={28} />
+              {c.label}
+            </Choice>
+          ))}
+        </Grid>
+        <PrimaryButton onClick={save} disabled={selected.size === 0} style={{ width: '100%' }}>
+          {selected.size === 0 ? '분야를 하나 이상 골라주세요' : `${selected.size}개 분야로 시작하기`}
+        </PrimaryButton>
+      </Page>
     </Layout>
   )
 }

@@ -1,117 +1,271 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import clsx from 'clsx'
+import styled from '@emotion/styled'
 import Layout from '../components/Layout'
 import RankingRow from '../components/RankingRow'
 import TrendRowSection from '../components/TrendRowSection'
-import IconText from '../components/IconText'
+import TrendFeature from '../components/TrendFeature'
+import TrendTile from '../components/TrendTile'
 import Icon from '../components/Icon'
-import { TIME_RANGES } from '../lib/meta'
-import { byCategory, byScoreDesc, byStatuses } from '../lib/selectors'
+import { formatChange } from '../lib/format'
+import { TIME_RANGES, type TimeRangeKey } from '../lib/meta'
+import { Flip, gsap, motionOk, useGSAP } from '../lib/motion'
+import { byCategory, byScoreDesc, byStatuses, rankFor } from '../lib/selectors'
+import type { CategoryKey } from '../lib/types'
 import { useInterests } from '../store/useInterests'
-import { CATEGORY_MAP } from '../lib/meta'
+import { useTrends } from '../store/useTrends'
+import { theme as t } from '../styles/theme'
+import { Banner, BannerArrow, Chip, MoreLink, Page, Section, SectionHead, SectionTitle, TileGrid } from '../styles/ui'
+
+const LIFE: { key: CategoryKey; label: string }[] = [
+  { key: 'fashion', label: '입는 것' },
+  { key: 'food', label: '먹는 것' },
+  { key: 'content', label: '보는 것' },
+  { key: 'item', label: '사는 것' },
+]
+
+const Headline = styled.h1`
+  margin-top: 12px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+`
+
+const Tagline = styled.p`
+  margin: 4px 0 20px;
+  font-size: 15px;
+  color: ${t.color.dim};
+`
+
+const SearchLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: ${t.radius.pill};
+  background: ${t.color.surface};
+  font-size: 14px;
+  color: ${t.color.dim};
+`
+
+const Chips = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+`
+
+// 4위부터는 썸네일 없이 2열 텍스트 차트로
+const Chart = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  margin-top: 16px;
+`
+
+// 밈은 그림이 없는 말의 유행이라 글자 자체를 크게 보여준다
+const Cloud = styled.p`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 18px;
+
+  a {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+
+  a:nth-of-type(even) {
+    color: ${t.color.dim};
+  }
+
+  small {
+    margin-left: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: ${t.color.dim};
+  }
+`
+
+const Source = styled.p`
+  margin-top: 36px;
+  font-size: 12px;
+  color: ${t.color.dim};
+`
 
 export default function Home() {
-  const [range, setRange] = useState<string>('today')
+  const [range, setRange] = useState<TimeRangeKey>('today')
+  const [life, setLife] = useState<CategoryKey>('fashion')
+  const trends = useTrends((s) => s.trends)
+  const source = useTrends((s) => s.source)
   const { interests, onboarded } = useInterests()
 
-  const ranking = byScoreDesc().slice(0, 10)
-  const top3 = ranking.slice(0, 3)
-  const explosive = byStatuses(['viral', 'rising']).slice(0, 8)
-  const risingHidden = byStatuses(['emerging']).slice(0, 8)
-  const memes = byCategory('meme').slice(0, 8)
-  const fashion = byCategory('fashion').slice(0, 8)
-  const food = byCategory('food').slice(0, 8)
-  const content = byCategory('content').slice(0, 8)
-  const items = byCategory('item').slice(0, 8)
+  const page = useRef<HTMLDivElement>(null)
+  const flipState = useRef<ReturnType<typeof Flip.getState> | null>(null)
 
-  const forYou = onboarded ? byScoreDesc().filter((t) => interests.includes(t.category)).slice(0, 8) : []
+  const ranking = useMemo(() => rankFor(trends, range).slice(0, 10), [trends, range])
+  const podiumIds = ranking.slice(0, 3).map((tr) => tr.id)
+  // 포디움에 없는 것 중 가장 빠르게 크는 트렌드
+  const fastest = [...trends].filter((tr) => !podiumIds.includes(tr.id)).sort((a, b) => b.changePct - a.changePct)[0]
+  const lifeList = byCategory(trends, life)
+  const lifeLabel = LIFE.find((l) => l.key === life)?.label
+  const forYou = onboarded
+    ? byScoreDesc(trends)
+        .filter((tr) => interests.includes(tr.category))
+        .slice(0, 8)
+    : []
+
+  // 기간을 바꾸면 순위 항목이 새 자리로 미끄러져 간다 (FLIP).
+  function changeRange(next: TimeRangeKey) {
+    if (next === range) return
+    if (page.current && motionOk()) flipState.current = Flip.getState(page.current.querySelectorAll('[data-flip-id]'))
+    setRange(next)
+  }
+
+  useGSAP(
+    () => {
+      const state = flipState.current
+      flipState.current = null
+      if (!state || !page.current) return
+      Flip.from(state, {
+        targets: page.current.querySelectorAll('[data-flip-id]'),
+        duration: 0.55,
+        ease: 'power3.inOut',
+        stagger: 0.015,
+        onEnter: (els) => gsap.fromTo(els, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35 }),
+      })
+    },
+    { dependencies: [range] },
+  )
+
+  // 1위의 3D 아이콘만 계속 살짝 떠 있는다 — "지금 움직이고 있다"는 신호는 한 군데면 충분하다.
+  useGSAP(
+    () => {
+      if (!motionOk()) return
+      gsap.to('[data-float] img', { y: -5, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1 })
+    },
+    { scope: page },
+  )
 
   return (
     <Layout>
-      <div className="px-4 pt-4">
-        <p className="text-xs text-[var(--color-text-dim)] mb-1">TREND NOW — 대한민국</p>
-        <h1 className="text-xl font-extrabold mb-3">지금 뜨는 것</h1>
-        <div className="flex gap-2 mb-4">
-          {TIME_RANGES.map((r) => (
-            <button
-              key={r.key}
-              onClick={() => setRange(r.key)}
-              className={clsx(
-                'text-xs px-3 py-1.5 rounded-full border',
-                range === r.key
-                  ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)] font-semibold'
-                  : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-              )}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+      <Page ref={page}>
+        <Headline data-stagger>지금 뜨는 것</Headline>
+        <Tagline data-stagger>세상의 모든 트렌드가, 여기에</Tagline>
 
-        <div className="flex gap-3 mb-2">
-          {top3.map((t, i) => (
-            <Link
-              key={t.id}
-              to={`/trend/${t.id}`}
-              className="flex-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
-            >
-              <p className="text-[10px] text-[var(--color-text-dim)] mb-1">#{i + 1}</p>
-              <p className="text-xs font-semibold truncate mb-1">{t.title}</p>
-              <p className="text-[var(--color-accent)] text-xs font-bold">+{Math.abs(t.changePct)}%</p>
-            </Link>
-          ))}
-        </div>
-      </div>
+        <SearchLink to="/search" data-stagger>
+          <Icon name="search" size={20} />
+          궁금한 트렌드를 검색해보세요
+        </SearchLink>
 
-      <section className="mt-3">
-        <div className="flex items-center justify-between px-4 mb-1">
-          <h2 className="text-sm font-bold">메인 랭킹</h2>
-          <Link to="/explore" className="inline-flex items-center gap-0.5 text-xs text-[var(--color-text-dim)]">
-            전체보기
-            <Icon name="chevronRight" size={12} />
-          </Link>
-        </div>
-        <div className="border-t border-[var(--color-border)]">
-          {ranking.map((t, i) => (
-            <RankingRow key={t.id} trend={t} rank={i + 1} />
-          ))}
-        </div>
-      </section>
+        <Section>
+          <SectionHead data-stagger>
+            <SectionTitle>지금 가장 뜨는 트렌드</SectionTitle>
+            <MoreLink to="/explore">
+              더보기
+              <Icon name="chevronRight" size={16} />
+            </MoreLink>
+          </SectionHead>
 
-      {onboarded && forYou.length > 0 && (
-        <TrendRowSection
-          title={<IconText icon="sparkles">FOR YOU</IconText>}
-          trends={forYou}
-          action={
-            <Link to="/onboarding" className="text-xs text-[var(--color-text-dim)]">
-              관심분야 수정
-            </Link>
-          }
-        />
-      )}
-      {!onboarded && (
-        <div className="mx-4 mt-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold mb-1">나만의 트렌드 피드 만들기</p>
-            <p className="text-xs text-[var(--color-text-dim)]">관심 분야를 선택하면 FOR YOU를 볼 수 있어요.</p>
-          </div>
-          <Link to="/onboarding" className="text-xs font-semibold text-black bg-[var(--color-accent)] rounded-full px-3 py-2 whitespace-nowrap">
-            선택하기
-          </Link>
-        </div>
-      )}
+          <Chips data-stagger>
+            {TIME_RANGES.map((r) => (
+              <Chip key={r.key} aria-pressed={range === r.key} onClick={() => changeRange(r.key)}>
+                {r.label}
+              </Chip>
+            ))}
+          </Chips>
 
-      <TrendRowSection title={<IconText icon="flame">지금 폭발 중</IconText>} trends={explosive} />
-      <TrendRowSection title={<IconText icon="sprout">아직 많이 모르는 Rising Trend</IconText>} trends={risingHidden} />
-      <TrendRowSection title={<IconText icon="laugh">오늘의 밈</IconText>} trends={memes} />
-      <TrendRowSection
-        title={<IconText icon={CATEGORY_MAP.fashion.icon}>요즘 많이 입는 것</IconText>}
-        trends={fashion}
-      />
-      <TrendRowSection title={<IconText icon={CATEGORY_MAP.food.icon}>요즘 많이 먹는 것</IconText>} trends={food} />
-      <TrendRowSection title={<IconText icon="smartphone">요즘 많이 보는 것</IconText>} trends={content} />
-      <TrendRowSection title={<IconText icon="shoppingBag">요즘 많이 사는 것</IconText>} trends={items} />
+          <TileGrid data-cols="3">
+            {ranking.slice(0, 3).map((trend, i) => (
+              <TrendTile
+                key={trend.id}
+                trend={trend}
+                rank={i + 1}
+                accent={i === 0}
+                pop
+                data-stagger
+                data-float={i === 0 || undefined}
+              />
+            ))}
+          </TileGrid>
+
+          <Chart>
+            {ranking.slice(3).map((trend, i) => (
+              <RankingRow key={trend.id} trend={trend} rank={i + 4} />
+            ))}
+          </Chart>
+        </Section>
+
+        {fastest && (
+          <Section>
+            <TrendFeature trend={fastest} label="지금 가장 빠르게 크는 중" data-stagger />
+          </Section>
+        )}
+
+        {forYou.length > 0 && (
+          <TrendRowSection
+            title="FOR YOU"
+            trends={forYou}
+            action={<MoreLink to="/onboarding">관심 분야 수정</MoreLink>}
+          />
+        )}
+
+        <TrendRowSection title="지금 폭발 중" trends={byStatuses(trends, ['viral', 'rising']).slice(0, 8)} />
+
+        <Section data-stagger>
+          <SectionHead>
+            <SectionTitle>오늘의 밈</SectionTitle>
+          </SectionHead>
+          <Cloud>
+            {byCategory(trends, 'meme').map((meme) => (
+              <Link key={meme.id} to={`/trend/${meme.id}`}>
+                {meme.title}
+                <small>{formatChange(meme.changePct)}</small>
+              </Link>
+            ))}
+          </Cloud>
+        </Section>
+
+        <Section data-stagger>
+          <SectionHead>
+            <SectionTitle>요즘 많이</SectionTitle>
+          </SectionHead>
+          <Chips>
+            {LIFE.map((l) => (
+              <Chip key={l.key} aria-pressed={life === l.key} onClick={() => setLife(l.key)}>
+                {l.label}
+              </Chip>
+            ))}
+          </Chips>
+          {lifeList[0] && <TrendFeature trend={lifeList[0]} label={`요즘 가장 많이 ${lifeLabel}`} />}
+          {lifeList.length > 1 && (
+            <TileGrid data-cols="3" style={{ marginTop: 16 }}>
+              {lifeList.slice(1, 4).map((trend) => (
+                <TrendTile key={trend.id} trend={trend} />
+              ))}
+            </TileGrid>
+          )}
+        </Section>
+
+        {!onboarded && (
+          <Banner to="/onboarding" data-stagger>
+            <span>
+              <strong>나만의 트렌드 피드 만들기</strong>
+              관심 분야를 고르면 FOR YOU가 열려요.
+            </span>
+            <BannerArrow>
+              <Icon name="chevronRight" size={22} />
+            </BannerArrow>
+          </Banner>
+        )}
+
+        <TrendRowSection title="아직 많이 모르는 Rising Trend" trends={byStatuses(trends, ['emerging']).slice(0, 8)} />
+
+        <Source>{source === 'live' ? '실시간 데이터로 보고 있어요.' : '서버에 연결되지 않아 샘플 데이터로 보고 있어요.'}</Source>
+      </Page>
     </Layout>
   )
 }

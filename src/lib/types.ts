@@ -1,4 +1,5 @@
 import type { IconName } from './icons'
+import type { Icon3DName } from './icons3d'
 
 export type CategoryKey =
   | 'issue'
@@ -27,6 +28,7 @@ export interface CategoryMeta {
   key: CategoryKey
   label: string
   icon: IconName
+  icon3d: Icon3DName
   examples: string
 }
 

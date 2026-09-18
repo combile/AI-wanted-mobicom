@@ -4,4 +4,8 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // 프론트의 axios는 /api 로만 요청한다 → 개발 중에는 server/(8787)로 넘긴다.
+    proxy: { '/api': 'http://localhost:8787' },
+  },
 })

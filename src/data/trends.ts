@@ -543,7 +543,3 @@ export const TRENDS: TrendCard[] = seeds.map((s) => ({
   history: history(s.historyPoints),
   growth24h: s.growth24h,
 }))
-
-export function getTrend(id: string): TrendCard | undefined {
-  return TRENDS.find((t) => t.id === id)
-}

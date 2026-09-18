@@ -1,16 +1,6 @@
 import { ICONS, type IconName } from '../lib/icons'
 
-export default function Icon({
-  name,
-  size = 16,
-  strokeWidth = 1.75,
-  className,
-}: {
-  name: IconName
-  size?: number
-  strokeWidth?: number
-  className?: string
-}) {
+export default function Icon({ name, size = 16, className }: { name: IconName; size?: number; className?: string }) {
   const Component = ICONS[name]
-  return <Component size={size} strokeWidth={strokeWidth} className={className} />
+  return <Component className={className} style={{ fontSize: size }} aria-hidden />
 }

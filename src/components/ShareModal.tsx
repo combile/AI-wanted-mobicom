@@ -1,14 +1,101 @@
-import { useState } from 'react'
-import type { TrendCard } from '../lib/types'
+import { useEffect, useRef, useState } from 'react'
+import styled from '@emotion/styled'
+import { gsap, motionOk, useGSAP } from '../lib/motion'
 import { STATUS_MAP } from '../lib/meta'
+import type { TrendCard } from '../lib/types'
+import { theme as t } from '../styles/theme'
+import { GhostButton, PrimaryButton } from '../styles/ui'
 import Icon from './Icon'
+import StatusLabel from './StatusLabel'
+import TrendThumb from './TrendThumb'
+
+const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+  background: rgba(0, 0, 0, 0.72);
+`
+
+const Sheet = styled.div`
+  width: 100%;
+  max-width: ${t.shell};
+  padding: 24px 20px calc(20px + env(safe-area-inset-bottom));
+  border-radius: ${t.radius.lg} ${t.radius.lg} 0 0;
+  background: ${t.color.surface};
+`
+
+// 공유용 이미지가 될 영역이라 이것만은 하나의 판으로 둔다.
+const ShareCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border-radius: ${t.radius.md};
+  background: ${t.color.bg};
+`
+
+const Caption = styled.p`
+  font-size: 13px;
+  color: ${t.color.dim};
+`
+
+const Title = styled.p`
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+`
+
+const Foot = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  font-size: 12px;
+  color: ${t.color.dim};
+`
+
+const Score = styled.p`
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: ${t.color.accent};
+`
+
+const Actions = styled.div`
+  display: flex;
+  gap: 8px;
+
+  > * {
+    flex: 1;
+  }
+`
 
 export default function ShareModal({ trend, onClose }: { trend: TrendCard; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
-  const status = STATUS_MAP[trend.status]
+  const root = useRef<HTMLDivElement>(null)
 
-  async function copyLink() {
-    const text = `내가 남들보다 먼저 발견한 트렌드\n${trend.title}\nTREND SCORE ${trend.score} (${status.label})\n지금 지구는 — Know what's NOW`
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  useGSAP(
+    () => {
+      if (!motionOk()) return
+      gsap.from(root.current, { autoAlpha: 0, duration: 0.2 })
+      gsap.from('[data-sheet]', { yPercent: 100, duration: 0.45, ease: 'power3.out' })
+    },
+    { scope: root },
+  )
+
+  async function copyText() {
+    const text = `내가 남들보다 먼저 발견한 트렌드\n${trend.title}\nTREND SCORE ${trend.score} (${STATUS_MAP[trend.status].label})\n지금 지구는 — Know what's NOW`
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -19,43 +106,41 @@ export default function ShareModal({ trend, onClose }: { trend: TrendCard; onClo
   }
 
   return (
-    <div
-      className="fixed inset-0 z-20 bg-black/70 flex items-center justify-center px-6"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-[340px] rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5"
+    <Backdrop ref={root} onClick={onClose}>
+      <Sheet
+        data-sheet
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${trend.title} 공유`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(160deg,#101012,#000)' }}>
-          <p className="text-[10px] text-[var(--color-text-dim)] mb-3">내가 남들보다 먼저 발견한 트렌드</p>
-          <p className="text-lg font-extrabold mb-4">{trend.title}</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] text-[var(--color-text-dim)]">TREND SCORE</p>
-              <p className="inline-flex items-center gap-1.5 text-2xl font-extrabold" style={{ color: status.color }}>
-                {trend.score}
-                <Icon name={status.icon} size={20} strokeWidth={2} />
-              </p>
-            </div>
-            <p className="text-[10px] text-[var(--color-text-dim)] text-right">
-              지금 지구는<br />Know what's NOW
-            </p>
+        <ShareCard>
+          <Caption>내가 남들보다 먼저 발견한 트렌드</Caption>
+          <TrendThumb trend={trend} size={72} />
+          <div>
+            <Title>{trend.title}</Title>
+            <StatusLabel status={trend.status} />
           </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={copyLink}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--color-accent)] text-black text-sm font-semibold py-2.5"
-          >
-            {copied && <Icon name="check" size={16} strokeWidth={2.25} />}
+          <Foot>
+            <div>
+              <p>TREND SCORE</p>
+              <Score>{trend.score}</Score>
+            </div>
+            <p style={{ textAlign: 'right' }}>
+              지금 지구는
+              <br />
+              Know what's NOW
+            </p>
+          </Foot>
+        </ShareCard>
+        <Actions>
+          <PrimaryButton onClick={copyText} autoFocus>
+            {copied && <Icon name="check" size={18} />}
             {copied ? '복사됨' : '텍스트 복사'}
-          </button>
-          <button onClick={onClose} className="flex-1 rounded-full border border-[var(--color-border)] text-sm py-2.5">
-            닫기
-          </button>
-        </div>
-      </div>
-    </div>
+          </PrimaryButton>
+          <GhostButton onClick={onClose}>닫기</GhostButton>
+        </Actions>
+      </Sheet>
+    </Backdrop>
   )
 }

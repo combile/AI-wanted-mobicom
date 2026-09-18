@@ -1,108 +1,105 @@
 import { useMemo, useState } from 'react'
-import clsx from 'clsx'
+import styled from '@emotion/styled'
 import Layout from '../components/Layout'
-import TrendGridCard from '../components/TrendGridCard'
-import IconText from '../components/IconText'
-import { CATEGORIES, STATUSES } from '../lib/meta'
-import { TRENDS } from '../data/trends'
+import TrendFeature from '../components/TrendFeature'
+import TrendTile from '../components/TrendTile'
+import { CATEGORIES, CATEGORY_MAP, STATUSES } from '../lib/meta'
 import type { CategoryKey, TrendStatus } from '../lib/types'
+import { useTrends } from '../store/useTrends'
+import { theme as t } from '../styles/theme'
+import { Chip, Lead, Page, ScrollRow, TileGrid } from '../styles/ui'
 
 type SortKey = 'score' | 'change'
 
+const Toolbar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 14px;
+  font-size: 13px;
+  color: ${t.color.dim};
+`
+
+const SortButton = styled.button`
+  padding: 4px 0 4px 12px;
+  font-size: 13px;
+  color: ${t.color.dim};
+
+  &[aria-pressed='true'] {
+    color: ${t.color.text};
+    font-weight: 700;
+  }
+`
+
 export default function Explore() {
+  const trends = useTrends((s) => s.trends)
   const [category, setCategory] = useState<CategoryKey | 'all'>('all')
   const [status, setStatus] = useState<TrendStatus | 'all'>('all')
   const [sort, setSort] = useState<SortKey>('score')
 
   const results = useMemo(() => {
-    let list = TRENDS.slice()
-    if (category !== 'all') list = list.filter((t) => t.category === category)
-    if (status !== 'all') list = list.filter((t) => t.status === status)
+    let list = trends.slice()
+    if (category !== 'all') list = list.filter((tr) => tr.category === category)
+    if (status !== 'all') list = list.filter((tr) => tr.status === status)
     list.sort((a, b) => (sort === 'score' ? b.score - a.score : b.changePct - a.changePct))
     return list
-  }, [category, status, sort])
+  }, [trends, category, status, sort])
+
+  const scope = category === 'all' ? '전체' : CATEGORY_MAP[category].label
 
   return (
     <Layout title="탐색">
-      <div className="px-4 pt-4">
-        <p className="text-xs text-[var(--color-text-dim)] mb-2">새로운 트렌드를 탐색하는 곳</p>
-
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2 -mx-4 px-4">
-          <button
-            onClick={() => setCategory('all')}
-            className={clsx(
-              'flex-shrink-0 text-xs px-3 py-1.5 rounded-full border',
-              category === 'all'
-                ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)] font-semibold'
-                : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-            )}
-          >
+      <Page>
+        <ScrollRow data-stagger>
+          <Chip aria-pressed={category === 'all'} onClick={() => setCategory('all')}>
             전체
-          </button>
+          </Chip>
           {CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setCategory(c.key)}
-              className={clsx(
-                'flex-shrink-0 text-xs px-3 py-1.5 rounded-full border',
-                category === c.key
-                  ? 'bg-[var(--color-accent)] text-black border-[var(--color-accent)] font-semibold'
-                  : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-              )}
-            >
-              <IconText icon={c.icon} size={12}>{c.label}</IconText>
-            </button>
+            <Chip key={c.key} aria-pressed={category === c.key} onClick={() => setCategory(c.key)}>
+              {c.label}
+            </Chip>
           ))}
-        </div>
+        </ScrollRow>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4 -mx-4 px-4">
-          <button
-            onClick={() => setStatus('all')}
-            className={clsx(
-              'flex-shrink-0 text-[11px] px-2.5 py-1 rounded-full border',
-              status === 'all' ? 'border-white text-white' : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-            )}
-          >
+        <ScrollRow data-stagger style={{ gap: 6, marginTop: 6 }}>
+          <Chip data-quiet aria-pressed={status === 'all'} onClick={() => setStatus('all')}>
             모든 상태
-          </button>
+          </Chip>
           {STATUSES.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => setStatus(s.key)}
-              className={clsx(
-                'flex-shrink-0 text-[11px] px-2.5 py-1 rounded-full border',
-                status === s.key ? 'border-white text-white' : 'border-[var(--color-border)] text-[var(--color-text-dim)]',
-              )}
-            >
-              <IconText icon={s.icon} size={11}>{s.label}</IconText>
-            </button>
+            <Chip data-quiet key={s.key} aria-pressed={status === s.key} onClick={() => setStatus(s.key)}>
+              {s.label}
+            </Chip>
           ))}
-        </div>
+        </ScrollRow>
 
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-[var(--color-text-dim)]">{results.length}개의 트렌드</p>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setSort('score')}
-              className={clsx('text-xs px-2 py-1 rounded-full', sort === 'score' ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]')}
-            >
+        <Toolbar data-stagger>
+          <span>{results.length}개의 트렌드</span>
+          <span>
+            <SortButton aria-pressed={sort === 'score'} onClick={() => setSort('score')}>
               점수순
-            </button>
-            <button
-              onClick={() => setSort('change')}
-              className={clsx('text-xs px-2 py-1 rounded-full', sort === 'change' ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-dim)]')}
-            >
+            </SortButton>
+            <SortButton aria-pressed={sort === 'change'} onClick={() => setSort('change')}>
               급상승순
-            </button>
-          </div>
-        </div>
+            </SortButton>
+          </span>
+        </Toolbar>
 
-        <div className="grid grid-cols-2 gap-3 pb-4">
-          {results.map((t) => (
-            <TrendGridCard key={t.id} trend={t} />
+        {results[0] && (
+          <TrendFeature
+            trend={results[0]}
+            label={`${scope} ${sort === 'score' ? '점수' : '급상승'} 1위`}
+            data-stagger
+          />
+        )}
+        <TileGrid style={{ marginTop: 24 }}>
+          {results.slice(1).map((trend) => (
+            <TrendTile key={trend.id} trend={trend} save status data-stagger />
           ))}
-        </div>
-      </div>
+        </TileGrid>
+        {results.length === 0 && (
+          <Lead style={{ textAlign: 'center', padding: '56px 0' }}>조건에 맞는 트렌드가 없어요. 필터를 줄여보세요.</Lead>
+        )}
+      </Page>
     </Layout>
   )
 }

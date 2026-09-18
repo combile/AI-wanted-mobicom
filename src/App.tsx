@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Explore from './pages/Explore'
@@ -8,8 +9,13 @@ import MyTrends from './pages/MyTrends'
 import Search from './pages/Search'
 import Radar from './pages/Radar'
 import Onboarding from './pages/Onboarding'
+import { useTrends } from './store/useTrends'
 
 export default function App() {
+  useEffect(() => {
+    void useTrends.getState().load()
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
