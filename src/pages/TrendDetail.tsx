@@ -227,7 +227,7 @@ export default function TrendDetail() {
           {h.length >= 2 && (
             <Axis>
               <span>{formatDate(h[0].date)}</span>
-              <span>{formatDate(h[Math.floor(h.length / 2)].date)}</span>
+              {h.length >= 3 && <span>{formatDate(h[Math.floor(h.length / 2)].date)}</span>}
               <span>{formatDate(h[h.length - 1].date)}</span>
             </Axis>
           )}

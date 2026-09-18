@@ -49,11 +49,14 @@ export default function Onboarding() {
   const [selected, setSelected] = useState<Set<CategoryKey>>(new Set(interests))
   const navigate = useNavigate()
 
+  // 함수형 업데이트: 빠르게 연달아 눌러도 앞의 선택이 덮어써지지 않는다.
   function toggle(key: CategoryKey) {
-    const next = new Set(selected)
-    if (next.has(key)) next.delete(key)
-    else next.add(key)
-    setSelected(next)
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
   function save() {

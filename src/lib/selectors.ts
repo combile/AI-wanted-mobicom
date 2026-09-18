@@ -1,4 +1,4 @@
-import { CATEGORY_MAP, type TimeRangeKey } from './meta'
+import { CATEGORIES, CATEGORY_MAP, type TimeRangeKey } from './meta'
 import type { CategoryKey, TrendCard, TrendStatus } from './types'
 
 export function byScoreDesc(list: TrendCard[]): TrendCard[] {
@@ -34,22 +34,30 @@ export function rankFor(list: TrendCard[], range: TimeRangeKey): TrendCard[] {
 
 const STOPWORDS = new Set(['요즘', '최근', '사이에서', '것', '같은', '많이', '다음', '이번', '갑자기', '뜨는', '뜰'])
 
+const CATEGORY_LABELS = new Set(CATEGORIES.map((c) => c.label))
+
 function tokenize(query: string): string[] {
-  return query
-    .trim()
-    .toLowerCase()
-    .split(/[\s,.?!]+/)
-    .filter((tok) => tok.length >= 2 && !STOPWORDS.has(tok))
+  return (
+    query
+      .trim()
+      .toLowerCase()
+      .split(/[\s,.?!]+/)
+      // 한 글자 토큰은 잡음이 많아 버리되, '밈'처럼 카테고리 이름 그 자체면 살린다.
+      .filter((tok) => (tok.length >= 2 || CATEGORY_LABELS.has(tok)) && !STOPWORDS.has(tok))
+  )
 }
 
 export function searchTrends(list: TrendCard[], query: string): TrendCard[] {
   const tokens = tokenize(query)
   if (tokens.length === 0) return []
 
-  const haystackOf = (t: TrendCard) =>
-    [t.title, t.summary, CATEGORY_MAP[t.category]?.label ?? t.category, ...t.keywords, ...t.spreadPath]
+  // 카테고리 설명('음식, 음료, 디저트…')도 포함해야 "뜰 것 같은 음식" 같은 일상어 질문이 푸드로 이어진다.
+  const haystackOf = (t: TrendCard) => {
+    const category = CATEGORY_MAP[t.category]
+    return [t.title, t.summary, category?.label ?? t.category, category?.examples ?? '', ...t.keywords, ...t.spreadPath]
       .join(' ')
       .toLowerCase()
+  }
 
   const scored = list
     .map((t) => {

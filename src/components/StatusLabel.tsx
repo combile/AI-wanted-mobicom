@@ -9,6 +9,7 @@ const Label = styled.span`
   align-items: center;
   gap: 3px;
   font-size: 12px;
+  font-weight: 400;
   color: ${t.color.dim};
   white-space: nowrap;
 `

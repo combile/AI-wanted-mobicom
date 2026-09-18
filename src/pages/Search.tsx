@@ -3,19 +3,11 @@ import styled from '@emotion/styled'
 import Layout from '../components/Layout'
 import TrendTile from '../components/TrendTile'
 import Icon from '../components/Icon'
+import { PRESET_QUESTIONS } from '../lib/meta'
 import { searchTrends } from '../lib/selectors'
 import { useTrends } from '../store/useTrends'
 import { theme as t } from '../styles/theme'
 import { Card, Empty, Page, Rows, Section, SectionTitle, TileGrid } from '../styles/ui'
-
-const PRESET_QUESTIONS = [
-  '요즘 대학생 사이에서 뜨는 것',
-  '요즘 여자 패션',
-  '다음 달에 뜰 것 같은 음식',
-  '최근 한 달 사이 갑자기 뜬 밈',
-  '요즘 숏폼에서 많이 쓰는 음악',
-  '20대가 많이 사는 아이템',
-]
 
 const Field = styled.form`
   display: flex;

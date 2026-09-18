@@ -54,10 +54,10 @@ const ScoreChange = styled.p`
     font-weight: 500;
   }
 
+  /* 저장한 뒤 얼마나 컸는지가 이 화면의 핵심이라 흐리게 두지 않는다 */
   em {
     font-style: normal;
-    font-weight: 500;
-    color: ${t.color.dim};
+    color: ${t.color.text};
   }
 
   em[data-down='true'] {

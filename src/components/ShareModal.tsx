@@ -79,16 +79,38 @@ export default function ShareModal({ trend, onClose }: { trend: TrendCard; onClo
   const [copied, setCopied] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
+  // 열리면 포커스를 시트 안으로 옮기고, Tab은 시트 안에서만 돌게 하고, 닫히면 열었던 버튼으로 돌려준다.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const opener = document.activeElement as HTMLElement | null
+    const buttons = () => root.current?.querySelectorAll<HTMLElement>('button') ?? []
+    buttons()[0]?.focus()
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onClose()
+      if (e.key !== 'Tab') return
+      const items = buttons()
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last?.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first?.focus()
+      }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      opener?.focus()
+    }
   }, [onClose])
 
   useGSAP(
     () => {
       if (!motionOk()) return
-      gsap.from(root.current, { autoAlpha: 0, duration: 0.2 })
+      // autoAlpha는 visibility:hidden에서 시작해 그 순간 포커스를 못 받는다 → opacity만 쓴다.
+      gsap.from(root.current, { opacity: 0, duration: 0.2 })
       gsap.from('[data-sheet]', { yPercent: 100, duration: 0.45, ease: 'power3.out' })
     },
     { scope: root },
@@ -134,7 +156,7 @@ export default function ShareModal({ trend, onClose }: { trend: TrendCard; onClo
           </Foot>
         </ShareCard>
         <Actions>
-          <PrimaryButton onClick={copyText} autoFocus>
+          <PrimaryButton onClick={copyText}>
             {copied && <Icon name="check" size={18} />}
             {copied ? '복사됨' : '텍스트 복사'}
           </PrimaryButton>

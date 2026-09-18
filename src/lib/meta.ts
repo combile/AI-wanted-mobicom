@@ -41,3 +41,13 @@ export const TIME_RANGES = [
 ] as const
 
 export type TimeRangeKey = (typeof TIME_RANGES)[number]['key']
+
+/** 검색 화면이 추천하는 질문. 전부 결과가 나와야 한다(selectors.test.ts가 지킨다). */
+export const PRESET_QUESTIONS = [
+  '요즘 대학생 사이에서 뜨는 것',
+  '요즘 여자 패션',
+  '다음 달에 뜰 것 같은 음식',
+  '최근 한 달 사이 갑자기 뜬 밈',
+  '요즘 숏폼에서 많이 쓰는 음악',
+  '20대가 많이 사는 아이템',
+]
