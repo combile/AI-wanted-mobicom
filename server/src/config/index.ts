@@ -14,6 +14,8 @@ export const config = {
   anthropic: {
     apiKey: optional('ANTHROPIC_API_KEY'),
   },
+  /** /api/admin/* 접근 토큰. 비어 있으면 관리자 API는 닫힌다. */
+  adminToken: optional('ADMIN_TOKEN'),
   pipelineCron: optional('PIPELINE_CRON') ?? '0 */4 * * *',
   port: Number(optional('PORT') ?? '8787'),
   dbPath: optional('DB_PATH') ?? './data/now-earth.sqlite',

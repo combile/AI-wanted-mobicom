@@ -60,17 +60,21 @@ npm run dev            # http://localhost:8787
 ```bash
 npm run pipeline:run
 # 또는 서버가 떠 있는 상태에서
-curl -X POST http://localhost:8787/api/admin/pipeline/run
+curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8787/api/admin/pipeline/run
 ```
+
+> `/api/admin/*`는 `.env`의 `ADMIN_TOKEN`과 같은 값을 `Authorization: Bearer …` 헤더로 보내야 합니다.
+> `ADMIN_TOKEN`이 비어 있으면 관리자 API는 닫혀 있습니다(503). 토큰 없이/틀리게 보내면 401입니다.
 
 ## 4. 운영자 승인
 
 새로 발견된 트렌드는 바로 노출되지 않고 `review_queue`에 쌓입니다.
 
 ```bash
-curl http://localhost:8787/api/admin/review          # 대기 중인 카드 목록
-curl -X POST http://localhost:8787/api/admin/review/{id}/approve
-curl -X POST http://localhost:8787/api/admin/review/{id}/reject
+AUTH="Authorization: Bearer $ADMIN_TOKEN"
+curl -H "$AUTH" http://localhost:8787/api/admin/review          # 대기 중인 카드 목록
+curl -X POST -H "$AUTH" http://localhost:8787/api/admin/review/{id}/approve
+curl -X POST -H "$AUTH" http://localhost:8787/api/admin/review/{id}/reject
 ```
 
 승인된 카드만 `GET /api/trends`로 노출됩니다 — 프론트엔드가 붙일 엔드포인트입니다.

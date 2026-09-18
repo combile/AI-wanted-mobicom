@@ -7,7 +7,8 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "pipeline:run": "tsx src/pipeline/run.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

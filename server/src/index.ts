@@ -31,5 +31,6 @@ app.listen(config.port, () => {
   if (!isNaverConfigured) console.warn('[server] NAVER_CLIENT_ID/SECRET missing — search/news/shopping signals disabled')
   if (!isYoutubeConfigured) console.warn('[server] YOUTUBE_API_KEY missing — content discovery disabled')
   if (!isAnthropicConfigured) console.warn('[server] ANTHROPIC_API_KEY missing — curation step disabled')
+  if (!config.adminToken) console.warn('[server] ADMIN_TOKEN missing — /api/admin/* is closed (503)')
   startScheduler()
 })
