@@ -47,7 +47,7 @@ const Headline = styled.h1`
 
 const Tagline = styled.p`
   margin: 4px 0 20px;
-  font-size: 15px;
+  font-size: 16px;
   color: ${t.color.dim};
 `
 
@@ -81,10 +81,12 @@ const Cloud = styled.p`
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 10px 18px;
+  gap: 0 18px;
 
   a {
-    font-size: 26px;
+    /* 글자 한 줄(29px)만으로는 누르기 작아서 위아래로 영역을 넓힌다 */
+    padding: 8px 0;
+    font-size: 24px;
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.2;
@@ -96,7 +98,7 @@ const Cloud = styled.p`
 
   small {
     margin-left: 6px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     letter-spacing: 0;
     color: ${t.color.dim};
@@ -112,7 +114,7 @@ const VideoScroll = styled(ScrollRow)`
 `
 
 const VideoNote = styled.span`
-  font-size: 13px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
@@ -122,6 +124,10 @@ const Source = styled.p`
   color: ${t.color.dim};
 
   button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
     color: ${t.color.text};
     text-decoration: underline;
     text-underline-offset: 3px;

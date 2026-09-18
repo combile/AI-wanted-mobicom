@@ -45,7 +45,7 @@ const ScoreChange = styled.p`
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 
@@ -69,9 +69,9 @@ const ScoreChange = styled.p`
 const RemoveButton = styled.button`
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-right: -8px;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
   color: ${t.color.accent};
 `
 

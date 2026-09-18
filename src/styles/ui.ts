@@ -71,10 +71,13 @@ export const TileGrid = styled.div`
 `
 
 export const Chip = styled.button`
+  position: relative;
   flex-shrink: 0;
-  font-size: 13px;
+  /* '밈'처럼 한 글자짜리도 너비 44px은 되게 */
+  min-width: 44px;
+  font-size: 14px;
   line-height: 1;
-  padding: 9px 14px;
+  padding: 11px 14px;
   border-radius: ${t.radius.pill};
   background: ${t.color.surface};
   color: ${t.color.dim};
@@ -88,10 +91,17 @@ export const Chip = styled.button`
     font-weight: 700;
   }
 
+  /* 보이는 크기는 36px이지만 눌리는 영역은 위아래로 늘려 44px을 채운다 */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
   /* 같은 화면의 두 번째 필터 줄: 라임을 또 쓰지 않는다 */
   &[data-quiet='true'] {
     background: none;
-    padding: 9px 6px;
+    padding: 11px 8px;
   }
 
   &[data-quiet='true'][aria-pressed='true'] {
@@ -105,9 +115,10 @@ export const Section = styled.section`
 
 export const SectionHead = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  min-height: 44px;
+  margin-bottom: 4px;
 `
 
 export const SectionTitle = styled.h2`
@@ -119,7 +130,9 @@ export const SectionTitle = styled.h2`
 export const MoreLink = styled(Link)`
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
+  min-height: 44px;
+  padding-left: 12px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
@@ -129,13 +142,15 @@ const buttonBase = css`
   justify-content: center;
   gap: 6px;
   border-radius: ${t.radius.pill};
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   padding: 13px 20px;
   white-space: nowrap;
 
+  /* 비활성 버튼에 안내 문구를 싣기도 해서, 투명도로 흐리지 않고 읽히는 색을 쓴다 (5.1:1) */
   &:disabled {
-    opacity: 0.4;
+    background: ${t.color.surface2};
+    color: ${t.color.dim};
     cursor: default;
   }
 `
@@ -157,8 +172,8 @@ export const GhostButton = styled.button`
 const iconButton = css`
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   color: ${t.color.text};
 
   &[aria-pressed='true'] {
@@ -196,7 +211,7 @@ export const Banner = styled(Link)`
   background:
     radial-gradient(120% 140% at 100% 100%, ${t.color.accent}2e, transparent 60%),
     ${t.color.surface};
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: ${t.color.dim};
 

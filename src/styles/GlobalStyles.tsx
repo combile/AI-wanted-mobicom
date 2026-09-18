@@ -24,8 +24,8 @@ const styles = css`
     background: ${t.color.bg};
     color: ${t.color.text};
     font-family: ${t.font};
-    font-size: 14px;
-    line-height: 1.45;
+    font-size: 16px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
@@ -46,6 +46,12 @@ const styles = css`
   input {
     font: inherit;
     color: inherit;
+  }
+
+  a,
+  button {
+    /* 더블탭 확대 판정을 기다리지 않고 바로 반응 */
+    touch-action: manipulation;
   }
 
   button {

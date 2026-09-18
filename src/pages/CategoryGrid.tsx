@@ -22,7 +22,7 @@ const Cell = styled(Link)`
   padding: 18px;
   border-radius: ${t.radius.md};
   background: ${t.color.surface};
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   color: ${t.color.dim};
 

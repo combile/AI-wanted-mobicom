@@ -1,9 +1,14 @@
-// Microsoft Fluent Emoji(3D, MIT)를 public/icons3d/<slug>.png 로 내려받는다.
+// Microsoft Fluent Emoji(3D, MIT)를 내려받아 public/icons3d/<slug>.webp 로 저장한다.
+// 원본 PNG(256px)보다 약 80% 작다. 변환은 sharp-cli를 npx로 불러 쓰므로 프로젝트 의존성은 늘지 않는다.
 // 아이콘 추가: 아래 목록에 [slug, Fluent 폴더명] 한 줄 추가 → `npm run icons3d`
 // → src/lib/icons3d.ts 의 Icon3DName 에 slug 추가.
 // 3D는 트렌드 썸네일 전용이다. 상태·UI에는 Material 아이콘(src/lib/icons.ts)을 쓴다.
 // 폴더명은 https://github.com/microsoft/fluentui-emoji/tree/main/assets 참고.
-import { mkdir, writeFile, access } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { mkdir, mkdtemp, rm, writeFile, access } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const ICONS = [
   // category (서버에서 온 모르는 트렌드의 썸네일 대체용)
@@ -51,10 +56,12 @@ const ICONS = [
 const BASE = 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets'
 const OUT = new URL('../public/icons3d/', import.meta.url)
 await mkdir(OUT, { recursive: true })
+const TMP = await mkdtemp(join(tmpdir(), 'icons3d-'))
 
 let failed = 0
+let downloaded = 0
 for (const [slug, folder] of ICONS) {
-  const dest = new URL(`${slug}.png`, OUT)
+  const dest = new URL(`${slug}.webp`, OUT)
   if (await access(dest).then(() => true, () => false)) continue
   const file = `${folder.toLowerCase().replaceAll(' ', '_')}_3d.png`
   const res = await fetch(`${BASE}/${encodeURIComponent(folder)}/3D/${file}`)
@@ -63,7 +70,15 @@ for (const [slug, folder] of ICONS) {
     console.error(`FAIL ${slug} (${folder}): ${res.status}`)
     continue
   }
-  await writeFile(dest, Buffer.from(await res.arrayBuffer()))
+  await writeFile(join(TMP, `${slug}.png`), Buffer.from(await res.arrayBuffer()))
   console.log(`ok   ${slug}`)
+  downloaded++
 }
+
+if (downloaded > 0) {
+  execFileSync('npx', ['-y', 'sharp-cli@5', '-i', join(TMP, '*.png'), '-o', fileURLToPath(OUT), '-f', 'webp', '-q', '88'], {
+    stdio: 'inherit',
+  })
+}
+await rm(TMP, { recursive: true, force: true })
 process.exit(failed ? 1 : 0)

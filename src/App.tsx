@@ -1,18 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import styled from '@emotion/styled'
 import Home from './pages/Home'
-import Explore from './pages/Explore'
-import CategoryGrid from './pages/CategoryGrid'
-import CategoryDetail from './pages/CategoryDetail'
-import TrendDetail from './pages/TrendDetail'
-import MyTrends from './pages/MyTrends'
-import Search from './pages/Search'
-import Radar from './pages/Radar'
-import Onboarding from './pages/Onboarding'
 import { gsap, motionOk, useGSAP } from './lib/motion'
 import { useTrends } from './store/useTrends'
 import { theme as t } from './styles/theme'
+
+// 홈만 첫 번들에 넣고 나머지 화면은 들어갈 때 받는다.
+const Explore = lazy(() => import('./pages/Explore'))
+const CategoryGrid = lazy(() => import('./pages/CategoryGrid'))
+const CategoryDetail = lazy(() => import('./pages/CategoryDetail'))
+const TrendDetail = lazy(() => import('./pages/TrendDetail'))
+const MyTrends = lazy(() => import('./pages/MyTrends'))
+const Search = lazy(() => import('./pages/Search'))
+const Radar = lazy(() => import('./pages/Radar'))
+const Onboarding = lazy(() => import('./pages/Onboarding'))
 
 /** 첫 진입 때 스플래시를 최소 이만큼은 보여준다(슬라이드가 보이도록). 0이면 로딩이 끝나는 즉시 넘어간다. */
 const MIN_SPLASH_MS: number = 1200
@@ -101,17 +103,19 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/explore" element={<Explore />} />
-        <Route path="/category" element={<CategoryGrid />} />
-        <Route path="/category/:key" element={<CategoryDetail />} />
-        <Route path="/trend/:id" element={<TrendDetail />} />
-        <Route path="/my" element={<MyTrends />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/radar" element={<Radar />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/category" element={<CategoryGrid />} />
+          <Route path="/category/:key" element={<CategoryDetail />} />
+          <Route path="/trend/:id" element={<TrendDetail />} />
+          <Route path="/my" element={<MyTrends />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/radar" element={<Radar />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

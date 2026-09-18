@@ -62,7 +62,7 @@ const Text = styled.div`
 `
 
 const Label = styled.p`
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   opacity: 0.6;
 `
@@ -77,7 +77,7 @@ const Title = styled.p`
 
 const Summary = styled.p`
   margin-bottom: 10px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   opacity: 0.7;
   display: -webkit-box;

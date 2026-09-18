@@ -13,7 +13,7 @@ const Row = styled(Link)`
   padding: 12px 0;
   border-bottom: 1px solid ${t.color.border};
   background: ${t.color.bg};
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 
   svg {

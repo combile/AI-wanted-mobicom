@@ -13,16 +13,19 @@ const Bar = styled.header`
   align-items: center;
   gap: 4px;
   min-height: 60px;
-  padding: 8px 12px 8px 20px;
+  padding: calc(8px + env(safe-area-inset-top)) 8px 8px 20px;
   background: ${t.color.bg}f2;
   backdrop-filter: blur(12px);
 
   &[data-back='true'] {
-    padding-left: 8px;
+    padding-left: 4px;
   }
 `
 
 const Wordmark = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -35,7 +38,7 @@ const Title = styled.h1`
   letter-spacing: -0.03em;
 
   [data-back='true'] > & {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
   }
 `

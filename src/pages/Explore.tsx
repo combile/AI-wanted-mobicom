@@ -15,14 +15,15 @@ const Toolbar = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 16px 0 14px;
-  font-size: 13px;
+  margin: 8px 0 10px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
 const SortButton = styled.button`
-  padding: 4px 0 4px 12px;
-  font-size: 13px;
+  min-height: 44px;
+  padding: 0 0 0 12px;
+  font-size: 14px;
   color: ${t.color.dim};
 
   &[aria-pressed='true'] {
@@ -61,7 +62,7 @@ export default function Explore() {
           ))}
         </ScrollRow>
 
-        <ScrollRow data-stagger style={{ gap: 6, marginTop: 6 }}>
+        <ScrollRow data-stagger style={{ marginTop: 8 }}>
           <Chip data-quiet aria-pressed={status === 'all'} onClick={() => setStatus('all')}>
             모든 상태
           </Chip>

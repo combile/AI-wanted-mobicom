@@ -41,7 +41,7 @@ const Preset = styled.button`
   justify-content: space-between;
   gap: 8px;
   padding: 16px 0;
-  font-size: 15px;
+  font-size: 16px;
   text-align: left;
 
   svg {
@@ -51,7 +51,7 @@ const Preset = styled.button`
 
 const Summary = styled(Card)`
   margin: 20px 0 8px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.65;
 
   span {

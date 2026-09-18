@@ -20,7 +20,15 @@ const Main = styled.main`
   flex: 1;
 `
 
-export default function Layout({ children, ...bar }: ComponentProps<typeof TopBar> & { children: ReactNode }) {
+export default function Layout({
+  children,
+  documentTitle,
+  ...bar
+}: ComponentProps<typeof TopBar> & {
+  children: ReactNode
+  /** 브라우저 탭·공유·스크린리더용 제목. 생략하면 상단 바의 title을 쓴다 */
+  documentTitle?: string
+}) {
   const main = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
   const navType = useNavigationType()
@@ -31,9 +39,12 @@ export default function Layout({ children, ...bar }: ComponentProps<typeof TopBa
   }, [pathname, navType])
 
   useStagger(main, [pathname])
+  const pageTitle = documentTitle ?? bar.title
 
   return (
     <Shell>
+      {/* React 19는 <title>을 <head>로 올려 준다 */}
+      <title>{pageTitle ? `${pageTitle} · 지금 지구는` : "지금 지구는 — Know what's NOW"}</title>
       <TopBar {...bar} />
       <Main ref={main}>{children}</Main>
       <BottomNav />

@@ -38,12 +38,12 @@ const Meta = styled.p`
   align-items: center;
   gap: 4px 10px;
   margin-top: 6px;
-  font-size: 13px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
 const Summary = styled.p`
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.65;
   color: ${t.color.dim};
 `
@@ -73,14 +73,14 @@ const Axis = styled.div`
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: ${t.color.dim};
 `
 
 const Note = styled.p`
   margin-top: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
@@ -95,7 +95,7 @@ const WhyList = styled.ol`
   li {
     display: flex;
     gap: 14px;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.55;
   }
 
@@ -113,7 +113,7 @@ const Path = styled.p`
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 2px;
-  font-size: 15px;
+  font-size: 16px;
 
   svg {
     color: ${t.color.dim};
@@ -131,7 +131,7 @@ const Timeline = styled.ol`
 
   li {
     position: relative;
-    font-size: 15px;
+    font-size: 16px;
   }
 
   li::before {
@@ -161,7 +161,7 @@ const Keywords = styled.p`
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  font-size: 15px;
+  font-size: 16px;
   color: ${t.color.dim};
 `
 
@@ -181,7 +181,7 @@ const OutLinks = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 14px;
+    padding: 13px 16px;
     border-radius: ${t.radius.pill};
     background: ${t.color.surface};
     font-size: 14px;
@@ -212,6 +212,7 @@ export default function TrendDetail() {
   return (
     <Layout
       back
+      documentTitle={trend.title}
       actions={
         <>
           <IconButton

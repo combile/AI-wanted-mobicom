@@ -24,7 +24,7 @@ const TitleLink = styled(Link)`
   display: block;
   width: 100%;
   margin-top: 8px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -42,20 +42,20 @@ const Rank = styled.span`
   top: 8px;
   left: 11px;
   z-index: 1;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: ${t.color.accentInk};
 `
 
 const SaveButton = styled.button`
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   color: ${t.color.accentInk};
   opacity: 0.45;
 

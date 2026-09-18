@@ -63,16 +63,15 @@ const Pulse = styled.span`
 // 사분면 이름은 구석의 작은 글씨 대신 옅은 큰 글자로 깔아 둔다.
 const Zone = styled.span`
   position: absolute;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  color: ${t.color.text};
-  opacity: 0.16;
+  /* 사분면 이름은 장식이 아니라 정보다 → 본문 대비(4.5:1 이상)를 지킨다 */
+  color: ${t.color.dim};
   pointer-events: none;
 
   &[data-hot='true'] {
     color: ${t.color.accent};
-    opacity: 0.55;
   }
 `
 
@@ -90,11 +89,27 @@ const Bubble = styled.button`
     height: auto;
   }
 
+  /* 작은 버블도 눌리는 영역은 44px 안팎이 되게 */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+  }
+
+  /* 선택(라임 링)과 키보드 포커스(흰 테두리)가 같은 모양이면 구분이 안 된다 */
   &[aria-pressed='true'] {
     z-index: 2;
     scale: 1.18;
-    outline: 2px solid ${t.color.accent};
-    outline-offset: 3px;
+    box-shadow:
+      0 0 0 3px ${t.color.surface},
+      0 0 0 5px ${t.color.accent};
+  }
+
+  &:focus-visible {
+    z-index: 3;
+    outline: 2px solid ${t.color.text};
+    outline-offset: 7px;
   }
 `
 
@@ -136,7 +151,7 @@ const PickedBody = styled.span`
   color: ${t.color.dim};
 
   strong {
-    font-size: 17px;
+    font-size: 18px;
     letter-spacing: -0.02em;
     color: ${t.color.text};
     white-space: nowrap;

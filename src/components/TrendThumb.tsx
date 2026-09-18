@@ -39,7 +39,7 @@ export default function TrendThumb({
       }}
     >
       <span data-pop={pop || undefined} style={{ display: 'grid', placeItems: 'center' }}>
-        <Icon3D name={trendIcon3d(trend)} size={128} />
+        <Icon3D name={trendIcon3d(trend)} size={128} eager={pop} />
       </span>
     </Box>
   )

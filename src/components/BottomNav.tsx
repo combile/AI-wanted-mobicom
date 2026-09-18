@@ -32,7 +32,7 @@ const Tab = styled(NavLink)`
   align-items: center;
   gap: 3px;
   padding: 10px 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: ${t.color.dim};
 
   &.active {

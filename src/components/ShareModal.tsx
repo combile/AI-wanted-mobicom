@@ -38,7 +38,7 @@ const ShareCard = styled.div`
 `
 
 const Caption = styled.p`
-  font-size: 13px;
+  font-size: 14px;
   color: ${t.color.dim};
 `
 
@@ -58,7 +58,7 @@ const Foot = styled.div`
 `
 
 const Score = styled.p`
-  font-size: 44px;
+  font-size: 34px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;

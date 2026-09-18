@@ -20,12 +20,14 @@ export function useStagger(scope: RefObject<HTMLElement | null>, deps: unknown[]
   useGSAP(
     () => {
       if (!motionOk()) return
+      // 항목이 많아도 전체 등장은 0.5초 안에 끝나게 간격을 줄인다(26개 목록이 0.9초씩 걸리지 않도록).
+      const count = scope.current?.querySelectorAll('[data-stagger]').length ?? 0
       gsap.from('[data-stagger]', {
         y: 14,
         autoAlpha: 0,
         duration: 0.45,
         ease: 'power3.out',
-        stagger: 0.035,
+        stagger: Math.min(0.035, 0.5 / Math.max(count, 1)),
         clearProps: 'transform,opacity,visibility',
       })
       gsap.from('[data-pop]', {
