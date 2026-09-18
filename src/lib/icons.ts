@@ -31,6 +31,7 @@ import GridViewOutlined from '@mui/icons-material/GridViewOutlined'
 import SearchRounded from '@mui/icons-material/SearchRounded'
 import ArrowBackIosNewRounded from '@mui/icons-material/ArrowBackIosNewRounded'
 import ArrowForwardRounded from '@mui/icons-material/ArrowForwardRounded'
+import ArrowUpwardRounded from '@mui/icons-material/ArrowUpwardRounded'
 import CheckRounded from '@mui/icons-material/CheckRounded'
 import IosShareRounded from '@mui/icons-material/IosShareRounded'
 import OpenInNewRounded from '@mui/icons-material/OpenInNewRounded'
@@ -74,6 +75,7 @@ export const ICONS = {
   search: SearchRounded,
   back: ArrowBackIosNewRounded,
   arrowRight: ArrowForwardRounded,
+  arrowUpward: ArrowUpwardRounded,
   check: CheckRounded,
   share: IosShareRounded,
   external: OpenInNewRounded,
