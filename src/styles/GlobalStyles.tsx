@@ -14,6 +14,11 @@ const styles = css`
     height: 100%;
   }
 
+  /* 다크 전용 앱: 브라우저가 그리는 스크롤바·입력 요소도 어두운 쪽으로 */
+  html {
+    color-scheme: dark;
+  }
+
   body {
     margin: 0;
     background: ${t.color.bg};
@@ -58,10 +63,6 @@ const styles = css`
   :focus-visible {
     outline: 2px solid ${t.color.accent};
     outline-offset: 2px;
-  }
-
-  ::-webkit-scrollbar {
-    display: none;
   }
 `
 

@@ -38,7 +38,13 @@ export const ScrollRow = styled.div`
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  /* 스크롤바는 이 가로 줄에서만 숨긴다. 페이지 전체의 스크롤바까지 숨기면 데스크톱에서 위치를 알 수 없다. */
   scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   margin: 0 -20px;
   padding: 0 20px;
 `

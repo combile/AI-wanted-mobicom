@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { theme as t } from '../styles/theme'
 import { IconButton, IconLink } from '../styles/ui'
@@ -57,10 +57,19 @@ export default function TopBar({
   actions?: ReactNode
 }) {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // 공유 링크로 바로 들어온 화면에는 돌아갈 기록이 없다(react-router의 첫 항목은 key가 'default').
+  // 그때 -1로 가면 사이트 밖으로 나가 버리므로 홈으로 보낸다.
+  function goBack() {
+    if (location.key === 'default') navigate('/', { replace: true })
+    else navigate(-1)
+  }
+
   return (
     <Bar data-back={back}>
       {back && (
-        <IconButton onClick={() => navigate(-1)} aria-label="뒤로">
+        <IconButton onClick={goBack} aria-label="뒤로">
           <Icon name="back" size={20} />
         </IconButton>
       )}

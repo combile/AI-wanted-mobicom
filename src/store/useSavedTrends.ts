@@ -30,22 +30,39 @@ interface SavedTrendsState {
   isSaved: (id: string) => boolean
   toggle: (id: string, currentScore: number) => void
   remove: (id: string) => void
+  /** 지운 항목을 저장 시점의 점수·시각 그대로 되돌린다 */
+  restore: (entry: SavedEntry) => void
 }
 
-export const useSavedTrends = create<SavedTrendsState>((set, get) => ({
-  entries: load(),
-  isSaved: (id) => get().entries.some((e) => e.id === id),
-  toggle: (id, currentScore) => {
-    const exists = get().entries.some((e) => e.id === id)
-    const next = exists
-      ? get().entries.filter((e) => e.id !== id)
-      : [...get().entries, { id, savedAt: new Date().toISOString(), scoreAtSave: currentScore }]
+// "몇 점일 때 발견했는지"는 다시 만들 수 없는 기록이다. 실수로 저장을 풀었다가 바로 다시
+// 누르면 새 기록 대신 직전에 지운 기록을 되살린다. 세션 동안만, 마지막 하나만 기억한다.
+let lastRemoved: SavedEntry | undefined
+
+export const useSavedTrends = create<SavedTrendsState>((set, get) => {
+  const commit = (next: SavedEntry[]) => {
     persist(next)
     set({ entries: next })
-  },
-  remove: (id) => {
-    const next = get().entries.filter((e) => e.id !== id)
-    persist(next)
-    set({ entries: next })
-  },
-}))
+  }
+  const drop = (id: string) => {
+    lastRemoved = get().entries.find((e) => e.id === id) ?? lastRemoved
+    commit(get().entries.filter((e) => e.id !== id))
+  }
+
+  return {
+    entries: load(),
+    isSaved: (id) => get().entries.some((e) => e.id === id),
+    toggle: (id, currentScore) => {
+      if (get().entries.some((e) => e.id === id)) return drop(id)
+      const entry =
+        lastRemoved?.id === id ? lastRemoved : { id, savedAt: new Date().toISOString(), scoreAtSave: currentScore }
+      lastRemoved = undefined
+      commit([...get().entries, entry])
+    },
+    remove: drop,
+    restore: (entry) => {
+      if (lastRemoved?.id === entry.id) lastRemoved = undefined
+      if (get().entries.some((e) => e.id === entry.id)) return
+      commit([...get().entries, entry])
+    },
+  }
+})

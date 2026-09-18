@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import Layout from '../components/Layout'
@@ -5,7 +6,7 @@ import Icon from '../components/Icon'
 import StatusLabel from '../components/StatusLabel'
 import TrendThumb from '../components/TrendThumb'
 import { formatRelativeDate } from '../lib/format'
-import { useSavedTrends } from '../store/useSavedTrends'
+import { useSavedTrends, type SavedEntry } from '../store/useSavedTrends'
 import { useTrends } from '../store/useTrends'
 import { theme as t } from '../styles/theme'
 import { Banner, BannerArrow, Empty, Page, PrimaryLink, Rows } from '../styles/ui'
@@ -74,10 +75,54 @@ const RemoveButton = styled.button`
   color: ${t.color.accent};
 `
 
+// 저장 취소는 "몇 점일 때 발견했는지"를 지우는 일이라, 잠깐 되돌릴 기회를 준다.
+const UndoToast = styled.div`
+  position: fixed;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 15;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(440px, calc(100% - 40px));
+  padding: 8px 8px 8px 16px;
+  border-radius: ${t.radius.md};
+  background: ${t.color.surface2};
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+
+  span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  button {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 0 12px;
+    font-weight: 700;
+    color: ${t.color.accent};
+  }
+`
+
+const UNDO_MS = 6000
+
 export default function MyTrends() {
   const entries = useSavedTrends((s) => s.entries)
   const remove = useSavedTrends((s) => s.remove)
+  const restore = useSavedTrends((s) => s.restore)
   const trends = useTrends((s) => s.trends)
+  const [undo, setUndo] = useState<{ entry: SavedEntry; title: string } | null>(null)
+
+  useEffect(() => {
+    if (!undo) return
+    const timer = setTimeout(() => setUndo(null), UNDO_MS)
+    return () => clearTimeout(timer)
+  }, [undo])
 
   const rows = entries
     .flatMap((entry) => {
@@ -123,7 +168,13 @@ export default function MyTrends() {
                         </em>
                       </ScoreChange>
                     </Body>
-                    <RemoveButton onClick={() => remove(trend.id)} aria-label={`${trend.title} 저장 취소`}>
+                    <RemoveButton
+                      aria-label={`${trend.title} 저장 취소`}
+                      onClick={() => {
+                        remove(trend.id)
+                        setUndo({ entry, title: trend.title })
+                      }}
+                    >
                       <Icon name="bookmark" size={24} />
                     </RemoveButton>
                   </Row>
@@ -142,6 +193,20 @@ export default function MyTrends() {
           </>
         )}
       </Page>
+
+      {undo && (
+        <UndoToast role="status">
+          <span>‘{undo.title}’ 저장을 취소했어요</span>
+          <button
+            onClick={() => {
+              restore(undo.entry)
+              setUndo(null)
+            }}
+          >
+            되돌리기
+          </button>
+        </UndoToast>
+      )}
     </Layout>
   )
 }

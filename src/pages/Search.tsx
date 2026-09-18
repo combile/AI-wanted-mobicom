@@ -29,7 +29,8 @@ const Field = styled.form`
     border: 0;
     outline: 0;
     background: none;
-    font-size: 15px;
+    /* 16px 미만이면 iOS Safari가 포커스할 때 화면을 강제로 확대한다 */
+    font-size: 16px;
     color: ${t.color.text};
   }
 `
