@@ -40,7 +40,13 @@ function refreshExistingTrend(existing: TrendCard, score: number): TrendCard {
   }
 }
 
-async function processCandidate(candidate: Candidate) {
+interface RunOptions {
+  /** DB가 방금 초기화돼 승인된 트렌드가 0건일 때만 쓰는 부트스트랩 모드 — 운영자 승인 없이
+   *  바로 노출한다. 평소(스케줄러·수동 실행)에는 절대 켜지 않는다 — 사람 승인이 기본값이다. */
+  autoApprove?: boolean
+}
+
+async function processCandidate(candidate: Candidate, options: RunOptions = {}) {
   const id = slugify(candidate.keyword)
   const signals: ValidationSignals = await validateCandidate(candidate)
   const score = computeScore(signals)
@@ -94,21 +100,26 @@ async function processCandidate(candidate: Candidate) {
     candidate,
     signals,
     draft,
-    status: 'pending',
+    status: options.autoApprove ? 'approved' : 'pending',
     createdAt: new Date().toISOString(),
   })
+
+  if (options.autoApprove) {
+    upsertTrend(draft)
+    return { id, action: 'auto-approved' as const, score }
+  }
 
   return { id, action: 'queued-for-review' as const, score }
 }
 
-export async function runPipeline() {
+export async function runPipeline(options: RunOptions = {}) {
   const startedAt = Date.now()
   const { candidates } = await discoverCandidates()
 
   const results = []
   for (const candidate of candidates) {
     try {
-      results.push(await processCandidate(candidate))
+      results.push(await processCandidate(candidate, options))
     } catch (err) {
       results.push({ id: slugify(candidate.keyword), action: 'error' as const, error: String(err) })
     }
@@ -119,6 +130,7 @@ export async function runPipeline() {
     candidateCount: candidates.length,
     refreshed: results.filter((r) => r.action === 'refreshed').length,
     queuedForReview: results.filter((r) => r.action === 'queued-for-review').length,
+    autoApproved: results.filter((r) => r.action === 'auto-approved').length,
     skippedLowSignal: results.filter((r) => r.action === 'skipped-low-signal').length,
     errors: results.filter((r) => r.action === 'error'),
   }
