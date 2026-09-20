@@ -154,6 +154,7 @@ export default function Home() {
   // 포디움에 없는 것 중 가장 빠르게 크는 트렌드
   const fastest = [...trends].filter((tr) => !podiumIds.includes(tr.id)).sort((a, b) => b.changePct - a.changePct)[0]
   const lifeList = byCategory(trends, life)
+  const memes = byCategory(trends, 'meme')
   const lifeLabel = LIFE.find((l) => l.key === life)?.label
   const forYou = onboarded
     ? byScoreDesc(trends)
@@ -272,19 +273,21 @@ export default function Home() {
           </Section>
         )}
 
-        <Section data-stagger>
-          <SectionHead>
-            <SectionTitle>오늘의 밈</SectionTitle>
-          </SectionHead>
-          <Cloud>
-            {byCategory(trends, 'meme').map((meme) => (
-              <Link key={meme.id} to={`/trend/${meme.id}`}>
-                {meme.title}
-                <small>{formatChange(meme.changePct)}</small>
-              </Link>
-            ))}
-          </Cloud>
-        </Section>
+        {memes.length > 0 && (
+          <Section data-stagger>
+            <SectionHead>
+              <SectionTitle>오늘의 밈</SectionTitle>
+            </SectionHead>
+            <Cloud>
+              {memes.map((meme) => (
+                <Link key={meme.id} to={`/trend/${meme.id}`}>
+                  {meme.title}
+                  <small>{formatChange(meme.changePct)}</small>
+                </Link>
+              ))}
+            </Cloud>
+          </Section>
+        )}
 
         <Section data-stagger>
           <SectionHead>
