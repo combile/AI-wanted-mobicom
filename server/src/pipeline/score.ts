@@ -15,6 +15,20 @@ function normalizeGrowth(pct: number | null): number {
   return Math.max(0, Math.min(100, (pct / 300) * 100))
 }
 
+// 쇼핑인사이트(카테고리 매핑 전이라 shoppingGrowthPct가 항상 null — README 참고)처럼
+// 신호가 구조적으로 비활성인 동안 그 가중치를 죽이지 않고 나머지 항목에 재분배한다.
+// 매핑이 붙어 shoppingGrowthPct가 값을 받기 시작하면 자동으로 원래 배분으로 돌아간다.
+function effectiveWeights(shoppingActive: boolean): typeof WEIGHTS {
+  if (shoppingActive) return WEIGHTS
+  const remaining = 1 - WEIGHTS.shopping
+  return {
+    search: WEIGHTS.search / remaining,
+    content: WEIGHTS.content / remaining,
+    shopping: 0,
+    crossPlatform: WEIGHTS.crossPlatform / remaining,
+  }
+}
+
 export function computeScore(signals: ValidationSignals): number {
   const searchScore = normalizeGrowth(signals.searchGrowthPct)
   const contentScore = normalizeGrowth(signals.contentGrowthPct)
@@ -24,12 +38,13 @@ export function computeScore(signals: ValidationSignals): number {
     (v) => v !== null,
   ).length
   const crossPlatformScore = (activeSources / 4) * 100
+  const weights = effectiveWeights(signals.shoppingGrowthPct !== null)
 
   const raw =
-    searchScore * WEIGHTS.search +
-    contentScore * WEIGHTS.content +
-    shoppingScore * WEIGHTS.shopping +
-    crossPlatformScore * WEIGHTS.crossPlatform
+    searchScore * weights.search +
+    contentScore * weights.content +
+    shoppingScore * weights.shopping +
+    crossPlatformScore * weights.crossPlatform
 
   return Math.round(Math.max(0, Math.min(100, raw)))
 }

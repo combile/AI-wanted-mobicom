@@ -1,13 +1,13 @@
 # now-earth-server
 
 "지금 지구는" 트렌드 탐지 백엔드. 목업 대신 실제 공개 API로 후보 키워드를 발견하고,
-여러 신호로 검증한 뒤, Claude로 서사(WHY TRENDING/타임라인/요약)를 만들어 운영자 승인 큐에 올립니다.
+여러 신호로 검증한 뒤, Gemini로 서사(WHY TRENDING/타임라인/요약)를 만들어 운영자 승인 큐에 올립니다.
 
 ```
-YouTube 인기영상 + 뉴스/블로그 RSS  →  후보 키워드 추출 (Claude)
+YouTube 인기영상 + 뉴스/블로그 RSS  →  후보 키워드 추출 (Gemini)
         →  신호 검증 (DataLab 검색량 / 뉴스·블로그 언급량 / YouTube 언급량)
         →  점수·상태 계산
-        →  점수 통과분만 Claude로 카드 서사화
+        →  점수 통과분만 Gemini로 카드 서사화
         →  운영자 승인 대기열 (review_queue)
         →  승인 시 trends 테이블에 반영 → 프론트엔드 API로 노출
 ```
@@ -39,9 +39,10 @@ YouTube 인기영상 + 뉴스/블로그 RSS  →  후보 키워드 추출 (Claud
 그 키는 2027-06-30까지는 그대로 쓸 수 있지만, 엔드포인트/헤더가 다르므로 별도 분기가 필요합니다 —
 지금 새로 만드는 거라면 위 HUB 절차만 따르면 됩니다.)
 
-### Anthropic (Claude API)
-1. https://console.anthropic.com 에서 API 키 발급
-2. `ANTHROPIC_API_KEY`에 입력
+### Gemini API (무료)
+1. https://aistudio.google.com/apikey 접속 → Google 계정으로 로그인 → **API 키 만들기**
+2. 발급된 키를 `GEMINI_API_KEY`에 입력
+3. 무료 티어(Flash 계열)로 충분 — 카드당 정량 신호 + 근거 제목만 넘겨서 서사를 생성하는 정도라 호출량이 적음
 
 ## 2. 실행
 

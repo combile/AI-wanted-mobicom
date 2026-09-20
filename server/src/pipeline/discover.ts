@@ -1,6 +1,6 @@
 import { fetchTrendingVideosKR, type YoutubeVideo } from '../services/youtube.js'
 import { fetchAllFeeds, type RssItem } from '../services/rss.js'
-import { extractCandidateKeywords } from '../services/claude.js'
+import { extractCandidateKeywords } from '../services/gemini.js'
 import type { Candidate, SourceRef } from '../types.js'
 
 function matches(text: string, needle: string): boolean {

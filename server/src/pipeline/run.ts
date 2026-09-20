@@ -3,11 +3,14 @@ import { randomUUID } from 'node:crypto'
 import { discoverCandidates } from './discover.js'
 import { validateCandidate } from './validate.js'
 import { computeScore, computeStatus } from './score.js'
-import { curateTrendCard } from '../services/claude.js'
+import { curateTrendCard } from '../services/gemini.js'
 import { getTrend, upsertTrend, enqueueReview } from '../db/index.js'
 import type { Candidate, TrendCard, ValidationSignals } from '../types.js'
 
-const MIN_SCORE_FOR_REVIEW = 30
+// 콘텐츠 성장률은 같은 키워드를 두 번째로 볼 때부터 값이 생기고(첫 목격 시 스냅샷이 없어 null),
+// 쇼핑 신호는 아직 미연동이라 첫 실행에서는 사실상 검색량+교차플랫폼 신호만으로 판단하게 된다.
+// 실측 데이터(2026-09-20)로 보정한 값 — 운영 데이터가 더 쌓이면 재조정 대상.
+const MIN_SCORE_FOR_REVIEW = 25
 
 function slugify(keyword: string): string {
   return keyword
