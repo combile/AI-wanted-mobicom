@@ -11,8 +11,8 @@ export const config = {
   youtube: {
     apiKey: optional('YOUTUBE_API_KEY'),
   },
-  anthropic: {
-    apiKey: optional('ANTHROPIC_API_KEY'),
+  gemini: {
+    apiKey: optional('GEMINI_API_KEY'),
   },
   /** /api/admin/* 접근 토큰. 비어 있으면 관리자 API는 닫힌다. */
   adminToken: optional('ADMIN_TOKEN'),
@@ -23,4 +23,4 @@ export const config = {
 
 export const isNaverConfigured = Boolean(config.naver.clientId && config.naver.clientSecret)
 export const isYoutubeConfigured = Boolean(config.youtube.apiKey)
-export const isAnthropicConfigured = Boolean(config.anthropic.apiKey)
+export const isGeminiConfigured = Boolean(config.gemini.apiKey)
