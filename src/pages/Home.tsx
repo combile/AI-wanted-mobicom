@@ -300,13 +300,21 @@ export default function Home() {
               </Chip>
             ))}
           </Chips>
-          {lifeList[0] && <TrendFeature trend={lifeList[0]} label={`요즘 가장 많이 ${lifeLabel}`} />}
-          {lifeList.length > 1 && (
-            <TileGrid data-cols="3" style={{ marginTop: 16 }}>
-              {lifeList.slice(1, 4).map((trend) => (
-                <TrendTile key={trend.id} trend={trend} />
-              ))}
-            </TileGrid>
+          {lifeList[0] ? (
+            <>
+              <TrendFeature trend={lifeList[0]} label={`요즘 가장 많이 ${lifeLabel}`} />
+              {lifeList.length > 1 && (
+                <TileGrid data-cols="3" style={{ marginTop: 16 }}>
+                  {lifeList.slice(1, 4).map((trend) => (
+                    <TrendTile key={trend.id} trend={trend} />
+                  ))}
+                </TileGrid>
+              )}
+            </>
+          ) : (
+            <VideoNote style={{ display: 'block', marginTop: 16 }}>
+              아직 {lifeLabel} 카테고리에 뜨는 트렌드가 없어요
+            </VideoNote>
           )}
         </Section>
 
