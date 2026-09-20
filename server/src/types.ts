@@ -68,6 +68,9 @@ export interface Candidate {
   aliases: string[]
   sources: SourceRef[]
   firstSeenAt: string
+  /** 후보 발견 단계의 대략적인 카테고리 추정 — 검증 단계에서 쇼핑 신호 조회에 쓴다.
+   *  최종 카테고리는 큐레이션 단계에서 다시 정해지므로 여기서 틀려도 노출에는 영향 없다. */
+  categoryGuess?: CategoryKey
 }
 
 /** Growth signals gathered per candidate before scoring. */

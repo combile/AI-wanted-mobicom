@@ -39,6 +39,7 @@ export async function discoverCandidates(): Promise<{ candidates: Candidate[]; v
       aliases: c.aliases,
       sources,
       firstSeenAt: new Date().toISOString(),
+      categoryGuess: c.categoryGuess,
     }
   })
 

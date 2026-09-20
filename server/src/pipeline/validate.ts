@@ -1,4 +1,4 @@
-import { fetchSearchTrend, searchNews } from '../services/naver.js'
+import { CATEGORY_TO_SHOPPING_CID, fetchSearchTrend, fetchShoppingCategoryTrend, searchNews } from '../services/naver.js'
 import { getPreviousSnapshot, recordSnapshot } from '../db/index.js'
 import type { Candidate, ValidationSignals } from '../types.js'
 
@@ -53,6 +53,31 @@ async function newsGrowth(keyword: string): Promise<number | null> {
   }
 }
 
+/**
+ * 카테고리 추정이 매핑 표(패션/뷰티만 확인됨 — services/naver.ts 참고)에 있을 때만 조회한다.
+ * 나머지 카테고리는 코드가 확인되기 전까지 null을 유지한다(틀린 코드로 엉뚱한 분야 데이터를
+ * 섞느니 신호 하나를 포기하는 쪽이 낫다).
+ */
+async function shoppingGrowth(candidate: Candidate): Promise<number | null> {
+  const cid = candidate.categoryGuess ? CATEGORY_TO_SHOPPING_CID[candidate.categoryGuess] : undefined
+  if (!cid) return null
+  try {
+    const [result] = await fetchShoppingCategoryTrend([{ name: candidate.categoryGuess!, cids: [cid] }], {
+      startDate: isoDaysAgo(13),
+      endDate: isoDaysAgo(0),
+      timeUnit: 'date',
+    })
+    const series = result?.data ?? []
+    if (series.length < 6) return null
+    const recent = series.slice(-3)
+    const prior = series.slice(-6, -3)
+    const avg = (points: typeof series) => points.reduce((sum, p) => sum + p.ratio, 0) / points.length
+    return growthPct(avg(recent), avg(prior))
+  } catch {
+    return null
+  }
+}
+
 /** 오늘 발견 단계에서 이 후보와 매칭된 YouTube 영상 수 vs 전일 스냅샷 성장률. */
 function contentGrowth(keyword: string, matchedVideoCount: number): number | null {
   const previous = getPreviousSnapshot(keyword, 'youtube_mentions')
@@ -63,12 +88,16 @@ function contentGrowth(keyword: string, matchedVideoCount: number): number | nul
 export async function validateCandidate(candidate: Candidate): Promise<ValidationSignals> {
   const matchedVideoCount = candidate.sources.filter((s) => s.url?.includes('youtube.com')).length
 
-  const [search, news] = await Promise.all([searchGrowth(candidate.keyword), newsGrowth(candidate.keyword)])
+  const [search, news, shopping] = await Promise.all([
+    searchGrowth(candidate.keyword),
+    newsGrowth(candidate.keyword),
+    shoppingGrowth(candidate),
+  ])
   const content = contentGrowth(candidate.keyword, matchedVideoCount)
 
   return {
     searchGrowthPct: search,
-    shoppingGrowthPct: null, // Naver Shopping Insight 카테고리 매핑 설정 전까지는 비활성 — README 참고
+    shoppingGrowthPct: shopping,
     contentGrowthPct: content,
     newsGrowthPct: news,
     evidenceCount: candidate.sources.length,

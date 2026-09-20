@@ -32,9 +32,33 @@ async function generateJson<T>(model: string, systemInstruction: string, prompt:
   }
 }
 
+// src/lib/meta.ts의 CATEGORIES와 같은 뜻으로 맞춰둔 것 — 프론트가 카테고리별로 다른 아이콘을
+// 보여주므로, 여기서 기준이 흐리면 서로 다른 트렌드가 전부 같은 카테고리·아이콘으로 몰린다
+// (스포츠 결과·게임 콘텐츠가 전부 'entertainment'로 분류되던 문제 — 2026-09-20).
+const CATEGORY_GUIDE: Record<CategoryKey, string> = {
+  issue: '뉴스, 사회적 이슈, 화제의 사건, 스포츠 경기 결과·수상 등 시사성 사건',
+  meme: '밈, 유행어, 챌린지, 인터넷 문화',
+  content: 'TikTok/릴스/쇼츠 등 영상 포맷, 게임 관련 유튜브 콘텐츠',
+  entertainment: '음악(가수·시상식·앨범), 드라마, 영화, 연예인 관련 소식',
+  fashion: '상의, 신발, 가방, 스타일링',
+  beauty: '화장법, 화장품, 헤어, 네일',
+  food: '음식, 음료, 디저트, 레시피',
+  place: '카페, 팝업스토어, 여행지',
+  item: '전자기기, 소품, 생활용품',
+  lifestyle: '취미, 운동, 공부, 소비문화',
+  design: '그래픽 스타일, 폰트, 컬러 트렌드',
+  tech: '앱, AI 서비스, 신기술',
+}
+const CATEGORY_KEYS = Object.keys(CATEGORY_GUIDE) as CategoryKey[]
+const CATEGORY_ENUM_DESCRIPTION = Object.entries(CATEGORY_GUIDE)
+  .map(([key, hint]) => `${key}: ${hint}`)
+  .join(' / ')
+
 export interface ExtractedCandidate {
   keyword: string
   aliases: string[]
+  /** 대략적인 카테고리 추정 — 검증 단계의 쇼핑 신호 조회용. 최종 카테고리는 큐레이션 단계에서 다시 정해진다. */
+  categoryGuess?: CategoryKey
 }
 
 /**
@@ -53,8 +77,9 @@ export async function extractCandidateKeywords(titles: string[]): Promise<Extrac
           properties: {
             keyword: { type: 'string', description: '대표 키워드 (한국어, 정규화된 형태)' },
             aliases: { type: 'array', items: { type: 'string' }, description: '동일 키워드의 다른 표기/영문명' },
+            categoryGuess: { type: 'string', enum: CATEGORY_KEYS, description: CATEGORY_ENUM_DESCRIPTION },
           },
-          required: ['keyword', 'aliases'],
+          required: ['keyword', 'aliases', 'categoryGuess'],
         },
       },
     },
@@ -67,6 +92,7 @@ export async function extractCandidateKeywords(titles: string[]): Promise<Extrac
     '고유명사·신조어·밈·제품명·챌린지명을 후보 키워드로 클러스터링해라.',
     '같은 대상을 가리키는 표기(예: "두바이초콜릿"/"Dubai Chocolate")는 하나의 keyword로 묶고 aliases에 나열해라.',
     '목록에 없는 키워드를 지어내지 마라. 너무 일반적인 단어(오늘, 날씨, 사고 등)는 제외해라.',
+    'categoryGuess는 스키마의 카테고리 설명을 참고해 가장 가까운 것으로 대략 추정해라(나중에 다시 정해지니 애매하면 최선으로 고르면 된다).',
     '',
     ...titles.map((t, i) => `${i + 1}. ${t}`),
   ].join('\n')
@@ -100,25 +126,6 @@ export interface CuratedCard {
   keywords: string[]
 }
 
-// src/lib/meta.ts의 CATEGORIES와 같은 뜻으로 맞춰둔 것 — 프론트가 카테고리별로 다른 아이콘을
-// 보여주므로, 여기서 기준이 흐리면 서로 다른 트렌드가 전부 같은 카테고리·아이콘으로 몰린다
-// (스포츠 결과·게임 콘텐츠가 전부 'entertainment'로 분류되던 문제 — 2026-09-20).
-const CATEGORY_GUIDE: Record<CategoryKey, string> = {
-  issue: '뉴스, 사회적 이슈, 화제의 사건, 스포츠 경기 결과·수상 등 시사성 사건',
-  meme: '밈, 유행어, 챌린지, 인터넷 문화',
-  content: 'TikTok/릴스/쇼츠 등 영상 포맷, 게임 관련 유튜브 콘텐츠',
-  entertainment: '음악(가수·시상식·앨범), 드라마, 영화, 연예인 관련 소식',
-  fashion: '상의, 신발, 가방, 스타일링',
-  beauty: '화장법, 화장품, 헤어, 네일',
-  food: '음식, 음료, 디저트, 레시피',
-  place: '카페, 팝업스토어, 여행지',
-  item: '전자기기, 소품, 생활용품',
-  lifestyle: '취미, 운동, 공부, 소비문화',
-  design: '그래픽 스타일, 폰트, 컬러 트렌드',
-  tech: '앱, AI 서비스, 신기술',
-}
-const CATEGORY_KEYS = Object.keys(CATEGORY_GUIDE) as CategoryKey[]
-
 /**
  * Synthesizes the human-facing TrendCard narrative fields from grounded evidence only.
  * The model must not fabricate dates, sources, or facts absent from the evidence payload.
@@ -131,9 +138,7 @@ export async function curateTrendCard(evidence: CurationEvidence): Promise<Curat
       category: {
         type: 'string',
         enum: CATEGORY_KEYS,
-        description: Object.entries(CATEGORY_GUIDE)
-          .map(([key, hint]) => `${key}: ${hint}`)
-          .join(' / '),
+        description: CATEGORY_ENUM_DESCRIPTION,
       },
       why: {
         type: 'array',

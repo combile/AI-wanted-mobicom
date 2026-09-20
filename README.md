@@ -1,53 +1,71 @@
 # 지금 지구는 — Know what's NOW
 
-기획서의 MVP 범위를 구현한 트렌드 인사이트 플랫폼 프로토타입입니다.
+실제 데이터와 AI로 "지금 무엇이 왜 뜨고 있는지"를 보여주는 트렌드 인사이트 플랫폼입니다.
 
-## 실행
+## 데모
 
-```bash
-npm install
-npm run dev
+- 웹: https://ai-wanted-mobicom.vercel.app/
+- API: https://ai-wanted-mobicom.onrender.com/health
+
+## 개요
+
+YouTube 인기 영상과 언론사 RSS에서 후보 키워드를 자동으로 발견하고, 검색량·언급량 증가율 같은
+정량 신호로 검증해 점수와 상태를 매깁니다. 점수를 통과한 트렌드만 AI(Gemini)가 근거 자료 기반으로
+요약·타임라인을 생성하고, 운영자 승인을 거쳐 노출됩니다.
+
+## 핵심 기능
+
+- **트렌드 파이프라인** — YouTube/RSS 발견 → 검색량·언급량 검증 → 점수·상태 계산 → AI 큐레이션 → 운영자 승인, 4시간 주기 자동 갱신
+- **Trend Score / 상태** — 0~100점, 7단계 상태(Emerging → Rising → Viral → Peak → Mainstream → Cooling → Over)
+- **WHY TRENDING / 타임라인** — 실제 근거 자료 기반 설명, 지어낸 사실 없음
+- **홈(TREND NOW)** — 실시간/오늘/이번 주/이번 달 랭킹, 카테고리별 섹션
+- **Trend Radar** — 관심도 × 성장 속도 산점도
+- **탐색** — 12개 카테고리 × 7개 상태 필터
+- **검색** — 질문 기반 검색 + AI 요약
+- **마이 트렌드 / FOR YOU** — 저장 추적, 관심 카테고리 기반 개인화 피드
+- **공유 카드**
+
+## 아키텍처
+
+```
+YouTube 인기영상 + 언론사 RSS
+  → 후보 키워드 발견 (Gemini)
+  → 신호 검증 (네이버 데이터랩 검색량 / 뉴스·블로그 언급량 / 콘텐츠 노출)
+  → 점수·상태 계산
+  → 점수 통과분만 AI 큐레이션 (요약 / WHY TRENDING / 타임라인)
+  → 운영자 승인 → 서비스 노출
 ```
 
-`http://localhost:5173` 에서 확인할 수 있습니다.
+서버 연결이 없거나 승인된 트렌드가 없으면 프론트는 샘플 데이터로 자동 대체됩니다.
 
-`server/`를 함께 띄우면(`cd server && npm run dev`, 8787) 승인된 실제 트렌드를 불러오고,
-서버가 없거나 승인된 트렌드가 없으면 샘플 데이터(`src/data/trends.ts`)로 동작합니다. 어느 쪽인지는 홈 맨 아래 안내 문구로 알 수 있습니다.
+## 기술 스택
 
-## 프론트 스택
+| 영역 | 스택 |
+| --- | --- |
+| 프론트엔드 | React 19, TypeScript, Vite, Emotion, GSAP, Zustand, React Router, axios |
+| 백엔드 | Node.js, Express, TypeScript, SQLite(node:sqlite), node-cron |
+| AI / 데이터 | Google Gemini API, YouTube Data API v3, 네이버 검색/데이터랩, 언론사 RSS |
+| 배포 | Vercel(프론트), Render(백엔드) |
 
-디자인 원칙: 기본은 박스형 카드·알약 뱃지 없이 나눈다. 카드(`Card`, 테두리 없는 어두운 면)는 목록의 한 항목이 아니라 독립된 한 덩어리인 네 곳에만 허용한다 — 상세의 스코어 패널, 검색의 AI 요약, 레이더에서 고른 트렌드, 카테고리 셀. 화면은 세 가지 문법을 섞어 리듬을 만든다 — 색면 피처(`TrendFeature`, 구간의 1등 하나), 썸네일 타일(`TrendTile` + `TileGrid`/`TileScroll`), 타이포(2열 순위 차트 `RankingRow`, 밈 글자 흐름). 한 줄 목록(`Rows`)은 마이 트렌드처럼 값 추적이 핵심인 곳에만. 메인 컬러(라임)는 1위 타일·선택된 칩/탭·워드마크·차트 선·주요 버튼에만. 이모지는 쓰지 않는다.
+## 실행 방법
 
-| 용도 | 모듈 | 쓰는 법 |
-| --- | --- | --- |
-| 스타일 | `@emotion/styled`, `@emotion/react` | 토큰은 `src/styles/theme.ts`, 공용 프리미티브(Rows·Chip·Section·Button·Banner…)는 `src/styles/ui.ts` |
-| 모션 | `gsap`, `@gsap/react` | `src/lib/motion.ts` — `useStagger`(화면 로드 시퀀스: `data-stagger`, `data-pop`), `useCountUp`, `pop`, Flip. `prefers-reduced-motion`이면 전부 꺼짐 |
-| API | `axios` | `src/lib/api.ts` 인스턴스(`/api` → vite proxy → 8787, 배포 시 `VITE_API_URL`), 데이터는 `src/store/useTrends.ts` |
-| UI 아이콘 | `@mui/icons-material` (Rounded) | `src/lib/icons.ts`에 등록 후 `<Icon name="search" size={20} />` |
-| 3D 아이콘 | Microsoft Fluent Emoji 3D (MIT) | **트렌드 썸네일 전용**(`<TrendThumb trend={t} />`). 상태·카테고리·UI에는 쓰지 않고 Material 아이콘만 쓴다. 추가: `scripts/fetch-icons3d.mjs`에 한 줄 → `npm run icons3d` → `src/lib/icons3d.ts`의 `Icon3DName`·`TREND_ICON`에 추가 |
+```bash
+# 프론트엔드
+npm install
+npm run dev              # http://localhost:5173
+
+# 백엔드 (별도 터미널)
+cd server
+npm install
+cp .env.example .env     # API 키 입력
+npm run dev               # http://localhost:8787
+```
+
+키 발급 방법은 `server/README.md` 참고.
 
 ## 테스트
 
 ```bash
-npm test                 # 프론트: vitest (검색·랭킹·표기 함수)
-cd server && npm test    # 서버: node:test (관리자 토큰, 캐시)
+npm test                 # 프론트
+cd server && npm test    # 백엔드
 ```
-
-## 구현된 기능
-
-- **유튜브 인기 영상 (한국)** — 서버의 `GET /api/videos`(YouTube `mostPopular`, regionCode=KR, 30분 캐시)를 홈에 노출. `YOUTUBE_API_KEY`가 없거나 서버가 꺼져 있으면 섹션이 숨겨짐
-- **더 찾아보기** — 상세 화면에서 그 트렌드를 유튜브·네이버·구글에서 바로 검색(키·쿼터 불필요)
-
-- **TREND NOW (홈)** — 실시간/오늘/이번 주/이번 달 랭킹, 지금 폭발 중 / Rising / 밈 / 카테고리별 섹션
-- **Trend Card / Trend Score** — 0~100점 점수, 7단계 상태(Emerging → Over), 변화율
-- **WHY TRENDING** — 트렌드가 왜 뜨는지 단계별 설명
-- **Trend Timeline** — 트렌드 확산 과정을 시간순으로 표시
-- **Trend Graph(관련 트렌드)** — 연관 트렌드로 연결 탐색
-- **탐색 / 카테고리** — 12개 카테고리, 7개 상태로 필터·정렬
-- **Trend Radar** — 관심도 × 성장 속도 2축 산점도
-- **검색** — 질문 기반 검색 + 모의 AI 요약
-- **저장(마이 트렌드)** — 저장 시점 대비 점수 변화 추적 (localStorage)
-- **개인화(FOR YOU)** — 관심 카테고리 선택 후 홈 하단에 개인화 피드 노출 (메인 TREND NOW는 비개인화 유지)
-- **공유** — 트렌드 발견 공유 카드 미리보기 + 텍스트 복사
-
-

@@ -88,10 +88,13 @@ curl -X POST -H "$AUTH" http://localhost:8787/api/admin/review/{id}/reject
 
 ## 6. 알려진 한계 (v1)
 
-- **Naver Shopping Insight(패션/푸드 관심도)는 아직 비활성**입니다. 카테고리 코드 매핑이 필요해서
-  `src/pipeline/validate.ts`의 `shoppingGrowthPct`가 항상 `null`로 나갑니다. 카테고리 코드를
-  [네이버 개발자센터 문서](https://developers.naver.com/docs/serviceapi/datalab/shopping/shopping.md)에서
-  확인해 `services/naver.ts`의 `fetchShoppingCategoryTrend` 호출부를 연결해야 합니다.
+- **Naver Shopping Insight(관심도 신호)는 패션·뷰티만 연동돼 있습니다.** 후보 발견 단계에서
+  Gemini가 추정한 대략적인 카테고리(`categoryGuess`)가 fashion/beauty일 때만
+  `services/naver.ts`의 `CATEGORY_TO_SHOPPING_CID`에 있는 카테고리 코드로 조회합니다.
+  나머지 카테고리(식품·테크 등)는 네이버 공식 문서에 코드가 예시 2개(패션의류 50000000,
+  화장품/미용 50000002)만 나와 있고 그 외 코드는 출처마다 값이 달라, 틀린 코드로 엉뚱한
+  분야 데이터를 섞느니 `null`로 남겨뒀습니다. 코드를 NCP 콘솔에서 직접 확인한 뒤
+  `CATEGORY_TO_SHOPPING_CID`에 추가하면 그 카테고리도 바로 연동됩니다.
 - **밈(TikTok/Instagram) 자동 수집 없음** — 기획대로 사용자 제보 방식으로 처리할 예정이며,
   아직 제보 API/화면은 만들지 않았습니다.
 - **YouTube `search.list`는 하루 ~100회로 제한**되어 있어, 검증 단계에서는 쓰지 않고

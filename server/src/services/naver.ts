@@ -1,4 +1,5 @@
 import { config, isNaverConfigured } from '../config/index.js'
+import type { CategoryKey } from '../types.js'
 
 // 2026-07-31부로 검색/데이터랩 API가 developers.naver.com(openapi.naver.com)에서
 // NAVER API HUB(NAVER Cloud Platform)로 이관됨. 신규 발급 키는 전부 이 도메인/헤더를 쓴다.
@@ -53,19 +54,42 @@ export async function fetchSearchTrend(
 }
 
 /**
- * 쇼핑인사이트 분야별 클릭 추이 (패션/푸드/아이템 관심도 신호).
+ * 우리 트렌드 카테고리 → 네이버 쇼핑인사이트 분야 코드(cid).
+ * NAVER API HUB 공식 예제 문서(naver-api-hub-shopping-insight-examples)에 실제로 등장하는
+ * 코드만 넣었다 — 블로그마다 나머지 코드(식품·디지털 등)가 서로 달라서, 확인 안 된 코드를
+ * 넣으면 엉뚱한 분야의 클릭 추이가 트렌드 점수에 섞여 들어갈 수 있다. 나머지는 NCP 콘솔의
+ * Shopping Insight 카테고리 선택 UI에서 직접 코드를 확인한 뒤에만 추가할 것.
+ */
+export const CATEGORY_TO_SHOPPING_CID: Partial<Record<CategoryKey, string>> = {
+  fashion: '50000000', // 패션의류
+  beauty: '50000002', // 화장품/미용
+}
+
+export interface ShoppingCategoryGroup {
+  name: string
+  cids: string[]
+}
+
+export interface ShoppingCategoryResult {
+  title: string
+  category: string[]
+  data: DataLabPoint[]
+}
+
+/**
+ * 쇼핑인사이트 분야별 클릭 추이. 최대 3개 분야 x 분야당 최대 3개 cid를 한 번에 조회.
  * NAVER API HUB에서 "Shopping Insight" API를 별도로 활성화해야 한다 (Search Trend와 별개 항목 —
- * 하나만 켜면 401/403 발생). category 코드는 NCP 콘솔의 Shopping Insight 문서에서 확인.
+ * 하나만 켜면 401/403 발생).
  */
 export async function fetchShoppingCategoryTrend(
-  category: string,
+  groups: ShoppingCategoryGroup[],
   opts: { startDate: string; endDate: string; timeUnit?: 'date' | 'week' | 'month' },
-): Promise<DataLabPoint[]> {
+): Promise<ShoppingCategoryResult[]> {
   const body = {
     startDate: opts.startDate,
     endDate: opts.endDate,
     timeUnit: opts.timeUnit ?? 'date',
-    category,
+    category: groups.map((g) => ({ name: g.name, param: g.cids })),
   }
   const res = await fetch(SHOPPING_CATEGORIES_URL, {
     method: 'POST',
@@ -73,8 +97,8 @@ export async function fetchShoppingCategoryTrend(
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(`Naver Shopping Insight failed: ${res.status} ${await res.text()}`)
-  const json = (await res.json()) as { results: { data: DataLabPoint[] }[] }
-  return json.results[0]?.data ?? []
+  const json = (await res.json()) as { results: ShoppingCategoryResult[] }
+  return json.results
 }
 
 export interface NaverSearchItem {
