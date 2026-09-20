@@ -100,20 +100,24 @@ export interface CuratedCard {
   keywords: string[]
 }
 
-const CATEGORY_KEYS: CategoryKey[] = [
-  'issue',
-  'meme',
-  'content',
-  'entertainment',
-  'fashion',
-  'beauty',
-  'food',
-  'place',
-  'item',
-  'lifestyle',
-  'design',
-  'tech',
-]
+// src/lib/meta.ts의 CATEGORIES와 같은 뜻으로 맞춰둔 것 — 프론트가 카테고리별로 다른 아이콘을
+// 보여주므로, 여기서 기준이 흐리면 서로 다른 트렌드가 전부 같은 카테고리·아이콘으로 몰린다
+// (스포츠 결과·게임 콘텐츠가 전부 'entertainment'로 분류되던 문제 — 2026-09-20).
+const CATEGORY_GUIDE: Record<CategoryKey, string> = {
+  issue: '뉴스, 사회적 이슈, 화제의 사건, 스포츠 경기 결과·수상 등 시사성 사건',
+  meme: '밈, 유행어, 챌린지, 인터넷 문화',
+  content: 'TikTok/릴스/쇼츠 등 영상 포맷, 게임 관련 유튜브 콘텐츠',
+  entertainment: '음악(가수·시상식·앨범), 드라마, 영화, 연예인 관련 소식',
+  fashion: '상의, 신발, 가방, 스타일링',
+  beauty: '화장법, 화장품, 헤어, 네일',
+  food: '음식, 음료, 디저트, 레시피',
+  place: '카페, 팝업스토어, 여행지',
+  item: '전자기기, 소품, 생활용품',
+  lifestyle: '취미, 운동, 공부, 소비문화',
+  design: '그래픽 스타일, 폰트, 컬러 트렌드',
+  tech: '앱, AI 서비스, 신기술',
+}
+const CATEGORY_KEYS = Object.keys(CATEGORY_GUIDE) as CategoryKey[]
 
 /**
  * Synthesizes the human-facing TrendCard narrative fields from grounded evidence only.
@@ -124,7 +128,13 @@ export async function curateTrendCard(evidence: CurationEvidence): Promise<Curat
     type: 'object',
     properties: {
       summary: { type: 'string', description: '한 문장 요약 (한국어)' },
-      category: { type: 'string', enum: CATEGORY_KEYS },
+      category: {
+        type: 'string',
+        enum: CATEGORY_KEYS,
+        description: Object.entries(CATEGORY_GUIDE)
+          .map(([key, hint]) => `${key}: ${hint}`)
+          .join(' / '),
+      },
       why: {
         type: 'array',
         description: '왜 뜨는지 3~6단계, 반드시 제공된 근거 자료에 기반',
@@ -161,6 +171,8 @@ export async function curateTrendCard(evidence: CurationEvidence): Promise<Curat
     '',
     '위 근거만 사용해서 트렌드 카드를 작성해라. 근거에 없는 사실·날짜·수치를 지어내지 마라.',
     '근거가 부족해서 특정 항목을 채울 수 없으면 해당 항목은 빈 배열로 남겨라.',
+    'category는 애매하면 "entertainment"로 뭉뚱그리지 말고 스키마의 카테고리별 설명을 보고 가장 구체적으로 맞는 것을 골라라',
+    '(예: 스포츠 경기 결과·수상은 issue, 게임 공략/플레이 영상은 content, 가수·시상식·드라마·영화는 entertainment).',
   ].join('\n')
 
   const parsed = await generateJson<{

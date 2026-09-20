@@ -16,9 +16,10 @@ const Wrap = styled(Link)`
   align-items: center;
   gap: 8px;
   min-height: 168px;
-  /* 카드가 아니라 화면 좌우 벽에 붙는 띠: Page의 좌우 패딩(20px)을 상쇄하고 모서리를 없앤다 */
+  /* 화면 좌우 패딩(20px)을 상쇄해 폭은 꽉 채우되, 모서리는 다른 카드와 같은 톤으로 둥글게 */
   margin: 0 -20px;
   padding: 26px 8px 26px 20px;
+  border-radius: ${t.radius.md};
   /* 단색 대신: 글자 쪽은 밝게, 아이콘 쪽으로 갈수록 톤이 깊어진다 */
   background: linear-gradient(
     115deg,
