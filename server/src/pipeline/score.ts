@@ -52,6 +52,12 @@ export function computeScore(signals: ValidationSignals): number {
 /**
  * 점수 자체보다 '방향성(성장 중/정체/하강)'이 상태 판단에 더 중요하므로
  * 점수 + 성장률 부호를 함께 본다. 임계값은 초기 추정치이며 운영 데이터가 쌓이면 조정 대상.
+ *
+ * 절대 점수 기준(85/60/30)은 쇼핑 신호가 연동되고 콘텐츠 성장률도 항상 값이 있는(콜드스타트가
+ * 끝난) 걸 전제로 잡은 값이었다. 지금은 둘 다 구조적으로 자주 비어 있어(score.ts의
+ * effectiveWeights 참고) 실제로 나오는 점수가 ~50점대를 잘 못 넘는데 그럼 rising/viral에 영원히
+ * 도달을 못 한다 — 지금 실제로 관측되는 점수 분포(2026-09-20)에 맞춰 낮춰뒀다. 두 신호가 붙으면
+ * 다시 위로 조정할 것.
  */
 export function computeStatus(score: number, signals: ValidationSignals): TrendStatus {
   const avgGrowth =
@@ -60,12 +66,12 @@ export function computeStatus(score: number, signals: ValidationSignals): TrendS
       .reduce((sum, v) => sum + v, 0) /
     Math.max(1, [signals.searchGrowthPct, signals.contentGrowthPct, signals.newsGrowthPct].filter((v) => v !== null).length)
 
-  if (score >= 85 && avgGrowth > 20) return 'viral'
-  if (score >= 85) return 'peak'
-  if (score >= 60 && avgGrowth > 0) return 'rising'
-  if (score >= 60) return 'mainstream'
-  if (score >= 30 && avgGrowth > 0) return 'emerging'
+  if (score >= 50 && avgGrowth > 20) return 'viral'
+  if (score >= 50) return 'peak'
+  if (score >= 35 && avgGrowth > 0) return 'rising'
+  if (score >= 35) return 'mainstream'
+  if (score >= 20 && avgGrowth > 0) return 'emerging'
   if (avgGrowth < -10) return 'cooling'
-  if (score < 15 && avgGrowth < 0) return 'over'
+  if (score < 10 && avgGrowth < 0) return 'over'
   return 'emerging'
 }
